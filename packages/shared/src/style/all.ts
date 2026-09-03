@@ -17,9 +17,11 @@ type IndividualDeviceType = {
 type DynamicStylesInput = {
   grid: any;
   solar: any;
+  solar2: any;
   entities: any;
   individual: Array<{ has?: boolean; field?: IndividualDeviceType }>;
   battery: any;
+  battery2: any;
   homeSources: Record<string, { color: string }>;
   homeLargestSource: string;
   nonFossil: any;
@@ -32,9 +34,11 @@ export const allDynamicStyles = (main: HostWithStyle, input: DynamicStylesInput)
   const {
     grid,
     solar,
+    solar2,
     entities,
     individual,
     battery,
+    battery2,
     homeSources,
     homeLargestSource,
     nonFossil,
@@ -126,6 +130,28 @@ export const allDynamicStyles = (main: HostWithStyle, input: DynamicStylesInput)
     entities.solar?.color_icon ? "var(--energy-solar-color)" : "var(--primary-text-color)"
   );
 
+  main.style.setProperty(
+    "--text-solar2-color",
+    entities.solar2?.color_value ? "var(--energy-solar2-color)" : "var(--primary-text-color)"
+  );
+
+  main.style.setProperty(
+    "--secondary-text-solar2-color",
+    entities.solar2?.secondary_info?.color_value
+      ? "var(--energy-solar2-color)"
+      : "var(--primary-text-color)"
+  );
+
+  if (entities.solar2?.color !== undefined) {
+    let solar2Color = entities.solar2.color;
+    if (typeof solar2Color === "object") solar2Color = convertColorListToHex(solar2Color);
+    main.style.setProperty("--energy-solar2-color", solar2Color || "#ffc107");
+  }
+  main.style.setProperty(
+    "--icon-solar2-color",
+    entities.solar2?.color_icon ? "var(--energy-solar2-color)" : "var(--primary-text-color)"
+  );
+
   if (battery.color.fromBattery !== undefined) {
     if (typeof battery.color.fromBattery === "object") {
       battery.color.fromBattery = convertColorListToHex(battery.color.fromBattery);
@@ -182,6 +208,64 @@ export const allDynamicStyles = (main: HostWithStyle, input: DynamicStylesInput)
   } else {
     main.style.setProperty("--text-battery-in-color", "var(--energy-battery-in-color)");
     main.style.setProperty("--text-battery-out-color", "var(--energy-battery-out-color)");
+  }
+
+  if (battery2.color.fromBattery !== undefined) {
+    if (typeof battery2.color.fromBattery === "object") {
+      battery2.color.fromBattery = convertColorListToHex(battery2.color.fromBattery);
+    }
+    main.style.setProperty("--energy-battery2-out-color", battery2.color.fromBattery || "#26a69a");
+  }
+  if (battery2.color.toBattery !== undefined) {
+    if (typeof battery2.color.toBattery === "object") {
+      battery2.color.toBattery = convertColorListToHex(battery2.color.toBattery);
+    }
+    main.style.setProperty("--energy-battery2-in-color", battery2.color.toBattery || "#7e57c2");
+  }
+  battery2.color.icon_type = entities.battery2?.color_icon;
+  main.style.setProperty(
+    "--icon-battery2-color",
+    battery2.color.icon_type === "consumption"
+      ? "var(--energy-battery2-in-color)"
+      : battery2.color.icon_type === "production"
+        ? "var(--energy-battery2-out-color)"
+        : battery2.color.icon_type === "color_dynamically"
+          ? battery2.state.fromBattery >= battery2.state.toBattery
+            ? "var(--energy-battery2-out-color)"
+            : "var(--energy-battery2-in-color)"
+          : "var(--primary-text-color)"
+  );
+  const battery2StateOfChargeColorType = entities.battery2?.color_state_of_charge_value;
+  main.style.setProperty(
+    "--text-battery2-state-of-charge-color",
+    battery2StateOfChargeColorType === "consumption"
+      ? "var(--energy-battery2-in-color)"
+      : battery2StateOfChargeColorType === "production"
+        ? "var(--energy-battery2-out-color)"
+        : battery2StateOfChargeColorType === "color_dynamically"
+          ? battery2.state.fromBattery >= battery2.state.toBattery
+            ? "var(--energy-battery2-out-color)"
+            : "var(--energy-battery2-in-color)"
+          : "var(--primary-text-color)"
+  );
+  main.style.setProperty(
+    "--circle-battery2-color",
+    battery2.color.circle_type === "consumption"
+      ? "var(--energy-battery2-in-color)"
+      : battery2.color.circle_type === "production"
+        ? "var(--energy-battery2-out-color)"
+        : battery2.color.circle_type !== "no_color"
+          ? battery2.state.fromBattery >= battery2.state.toBattery
+            ? "var(--energy-battery2-out-color)"
+            : "var(--energy-battery2-in-color)"
+          : "var(--energy-battery2-in-color)"
+  );
+  if (entities.battery2?.color_value === false) {
+    main.style.setProperty("--text-battery2-in-color", "var(--primary-text-color)");
+    main.style.setProperty("--text-battery2-out-color", "var(--primary-text-color)");
+  } else {
+    main.style.setProperty("--text-battery2-in-color", "var(--energy-battery2-in-color)");
+    main.style.setProperty("--text-battery2-out-color", "var(--energy-battery2-out-color)");
   }
 
   if (nonFossil.color !== undefined) {
