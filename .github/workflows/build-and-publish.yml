@@ -1,0 +1,47 @@
+name: Build and publish HACS bundle
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "packages/**"
+      - "pnpm-workspace.yaml"
+      - "pnpm-lock.yaml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.18.0"
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm --filter power-flow-card-three build
+
+      - name: Copy bundle to repo root dist/ (where HACS looks for it)
+        run: |
+          mkdir -p dist
+          cp packages/flixlix-cards/power-flow-card-plus/dist/power-flow-card-three.js dist/power-flow-card-three.js
+
+      - name: Commit updated bundle
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add dist/power-flow-card-three.js
+          if git diff --cached --quiet; then
+            echo "No changes to the built bundle, nothing to commit."
+            exit 0
+          fi
+          git commit -m "chore: update HACS bundle [skip ci]"
+          git push

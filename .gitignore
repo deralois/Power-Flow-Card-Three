@@ -60,3 +60,9 @@ custom-elements.json
 !.hass_dev/www
 !.hass_dev/packages
 .hass_dev/www/community/*
+
+# HACS distribution bundle: committed at repo root on purpose so HACS
+# (which searches root-level dist/ before falling back to releases) can
+# install this card without a separate release/tagging workflow.
+!/dist/
+!/dist/**

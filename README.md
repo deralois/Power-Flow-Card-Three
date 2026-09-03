@@ -17,6 +17,35 @@ Die Karte registriert sich unter dem Custom-Element `power-flow-card-three` und 
 Kartentyp `custom:power-flow-card-three`, damit sie parallel zum Original
 `power-flow-card-plus` installiert werden kann, ohne zu kollidieren.
 
+### Über HACS (benutzerdefiniertes Repository)
+
+Dieses Repo ist nicht im offiziellen HACS-Store gelistet, kann aber als
+benutzerdefiniertes Repository hinzugefügt werden:
+
+1. HACS öffnen → Menü (⋮) oben rechts → **Benutzerdefinierte Repositories**
+2. URL `https://github.com/deralois/Power-Flow-Card-Three` eintragen,
+   Kategorie **Dashboard**
+3. Karte installieren, HA neu laden
+4. Karte mit `type: custom:power-flow-card-three` in einem Dashboard verwenden
+
+Der Build unter `dist/power-flow-card-three.js` im Repo-Root wird bei jedem Push
+auf `master` automatisch über GitHub Actions aktualisiert
+(`.github/workflows/build-and-publish.yml`) — HACS findet ihn dort ohne
+zusätzliche Releases.
+
+Wichtig: HACS-Repos müssen **öffentlich** sein. Dieses Repo ist aktuell privat;
+es muss vor der Installation über die GitHub-Einstellungen auf öffentlich
+gestellt werden (siehe Abschnitt „Lizenz und Attribution" unten für die
+rechtlichen Implikationen).
+
+### Manuell
+
+1. `dist/power-flow-card-three.js` nach `<HA-Konfig>/www/power-flow-card-three.js`
+   kopieren
+2. Einstellungen → Dashboards → Ressourcen → Ressource hinzufügen:
+   URL `/local/power-flow-card-three.js`, Typ „JavaScript-Modul"
+3. Karte mit `type: custom:power-flow-card-three` verwenden
+
 ## Struktur
 
 Dieses Repository ist ein schlankes pnpm-Workspace, das nur die für
