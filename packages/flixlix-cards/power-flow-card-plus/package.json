@@ -1,0 +1,82 @@
+{
+  "name": "power-flow-card-three",
+  "private": true,
+  "version": "0.3.7",
+  "type": "module",
+  "description": "A power flow card for Home Assistant, supporting two PV systems and two batteries",
+  "keywords": [
+    "home-assistant",
+    "homeassistant",
+    "hass",
+    "dashboard",
+    "custom-cards"
+  ],
+  "main": "./dist/power-flow-card-three.js",
+  "exports": {
+    ".": "./dist/power-flow-card-three.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deralois/Power-Flow-Card-Three.git"
+  },
+  "author": "flixlix",
+  "bugs": {
+    "url": "https://github.com/deralois/Power-Flow-Card-Three/issues"
+  },
+  "homepage": "https://github.com/deralois/Power-Flow-Card-Three#readme",
+  "scripts": {
+    "build": "pnpm dlx rollup -c",
+    "clean": "rimraf dist node_modules",
+    "start": "rollup -wc",
+    "dev": "rollup -c --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "start:hass": "docker run --rm -p8123:8123 -v ./.hass_dev:/config homeassistant/home-assistant:beta"
+  },
+  "dependencies": {
+    "@flixlix-cards/shared": "workspace:*",
+    "@mdi/js": "catalog:packages",
+    "custom-card-helpers": "catalog:packages",
+    "home-assistant-js-websocket": "catalog:packages",
+    "lit": "catalog:packages",
+    "lit-element": "catalog:packages",
+    "lit-html": "catalog:packages",
+    "memoize-one": "catalog:packages",
+    "superstruct": "catalog:packages"
+  },
+  "devDependencies": {
+    "@babel/core": "catalog:packages",
+    "@babel/preset-env": "catalog:packages",
+    "@babel/preset-typescript": "catalog:packages",
+    "@changesets/changelog-github": "catalog:packages",
+    "@changesets/cli": "catalog:packages",
+    "@flixlix-cards/bundler": "workspace:*",
+    "@flixlix-cards/typescript-config": "workspace:*",
+    "@jest/globals": "catalog:packages",
+    "@rollup/plugin-babel": "catalog:packages",
+    "@rollup/plugin-commonjs": "catalog:packages",
+    "@rollup/plugin-json": "catalog:packages",
+    "@rollup/plugin-node-resolve": "catalog:packages",
+    "@rollup/plugin-terser": "catalog:packages",
+    "@rollup/plugin-typescript": "catalog:packages",
+    "@types/node": "catalog:",
+    "@types/sortablejs": "catalog:packages",
+    "@typescript-eslint/eslint-plugin": "catalog:packages",
+    "@typescript-eslint/parser": "catalog:packages",
+    "conventional-changelog-conventionalcommits": "catalog:packages",
+    "eslint": "catalog:packages",
+    "eslint-config-prettier": "catalog:packages",
+    "eslint-plugin-lit": "catalog:packages",
+    "eslint-plugin-wc": "catalog:packages",
+    "jest": "catalog:packages",
+    "prettier": "catalog:",
+    "prettier-plugin-embed": "catalog:packages",
+    "rollup": "catalog:packages",
+    "rollup-plugin-minify-html-literals": "catalog:packages",
+    "rollup-plugin-serve": "catalog:packages",
+    "typescript": "catalog:",
+    "vite-tsconfig-paths": "catalog:",
+    "vitest": "catalog:packages"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "name": "@flixlix-cards/bundler",
+  "version": "0.0.3",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.js"
+  },
+  "scripts": {
+    "clean": "rimraf dist node_modules"
+  },
+  "dependencies": {
+    "@babel/core": "catalog:packages",
+    "@babel/preset-env": "catalog:packages",
+    "@rollup/plugin-babel": "catalog:packages",
+    "@rollup/plugin-commonjs": "catalog:packages",
+    "@rollup/plugin-json": "catalog:packages",
+    "@rollup/plugin-node-resolve": "catalog:packages",
+    "@rollup/plugin-terser": "catalog:packages",
+    "@rollup/plugin-typescript": "catalog:packages",
+    "rollup-plugin-minify-html-literals": "catalog:packages",
+    "rollup-plugin-serve": "catalog:packages"
+  },
+  "peerDependencies": {
+    "rollup": "catalog:packages",
+    "typescript": "catalog:"
+  }
+}

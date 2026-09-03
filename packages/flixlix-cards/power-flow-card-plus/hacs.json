@@ -1,0 +1,6 @@
+{
+  "name": "Power Flow Card Three",
+  "render_readme": true,
+  "homeassistant": "2023.12.3",
+  "filename": "power-flow-card-three.js"
+}
