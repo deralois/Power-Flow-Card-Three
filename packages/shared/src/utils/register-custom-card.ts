@@ -5,9 +5,10 @@ interface RegisterCardParams {
   name: string;
   description: string;
   version: string;
+  documentationURL?: string;
 }
 export function registerCustomCard(params: RegisterCardParams) {
-  const readmeURL = `https://github.com/flixlix/${params.type}`;
+  const readmeURL = params.documentationURL ?? `https://github.com/flixlix/${params.type}`;
   const windowWithCards = window as unknown as Window & {
     customCards: unknown[];
   };

@@ -95,10 +95,11 @@ import packageJson from "../package.json" with { type: "json" };
 
 registerCustomCard({
   type: "power-flow-card-three",
-  name: "Power Flow Card Plus",
+  name: "Power Flow Card Three",
   description:
-    "An extended version of the power flow card with richer options, advanced features and a few small UI enhancements. Inspired by the Energy Dashboard.",
+    "A power flow card for Home Assistant with support for two independent PV systems and two independent batteries. Fork of power-flow-card-plus.",
   version: packageJson.version,
+  documentationURL: "https://github.com/deralois/Power-Flow-Card-Three",
 });
 
 @customElement("power-flow-card-three")
