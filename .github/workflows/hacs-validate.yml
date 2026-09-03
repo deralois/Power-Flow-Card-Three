@@ -20,8 +20,7 @@ jobs:
           # This repo is installed via HACS "Custom repositories", not
           # submitted to the official default store, so we only care about
           # checks that would actually break that install path. brands/images
-          # are store-listing polish; license/description/topics are
-          # default-store submission requirements — license in particular
-          # can't be added here since most of the code is an unlicensed
+          # are store-listing polish. license is a default-store submission
+          # requirement we can't satisfy: most of the code is an unlicensed
           # upstream fork (see README "Lizenz und Attribution").
-          ignore: "brands images license description topics"
+          ignore: "brands images license"
