@@ -16,3 +16,17 @@ export const getBatteryInState = (hass: HomeAssistant, config: FlowCardPlusConfi
 
 export const getBatteryOutState = (hass: HomeAssistant, config: FlowCardPlusConfig) =>
   getFieldOutState(hass, config, "battery");
+
+export const getBattery2StateOfCharge = (hass: HomeAssistant, config: FlowCardPlusConfig) => {
+  const entity = config.entities.battery2?.state_of_charge;
+
+  if (entity === undefined) return null;
+
+  return getEntityState(hass, entity);
+};
+
+export const getBattery2InState = (hass: HomeAssistant, config: FlowCardPlusConfig) =>
+  getFieldInState(hass, config, "battery2");
+
+export const getBattery2OutState = (hass: HomeAssistant, config: FlowCardPlusConfig) =>
+  getFieldOutState(hass, config, "battery2");

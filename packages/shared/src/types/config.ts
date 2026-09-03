@@ -128,6 +128,10 @@ export type ConfigEntities = {
   battery?: Battery;
   grid?: Grid;
   solar?: Solar;
+  /** A second, independent PV system. Same shape as `solar`. */
+  solar2?: Solar;
+  /** A second, independent battery. Same shape as `battery`. */
+  battery2?: Battery;
   home?: Home;
   fossil_fuel_percentage?: FossilFuelPercentage;
   individual?: IndividualField;

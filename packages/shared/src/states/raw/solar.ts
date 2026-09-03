@@ -28,3 +28,27 @@ export const getSolarState = (hass: HomeAssistant, config: FlowCardPlusConfig) =
 
 export const getSolarSecondaryState = (hass: HomeAssistant, config: FlowCardPlusConfig) =>
   getSecondaryState(hass, config, "solar");
+
+export const getSolar2State = (hass: HomeAssistant, config: FlowCardPlusConfig) => {
+  const entity = config.entities.solar2?.entity;
+  const secondaryEntity = config.entities.solar2?.secondary_info?.entity;
+
+  if (entity === undefined) return null;
+
+  const solarStateWatts = getEntityStateWatts(hass, entity);
+  const secondarySolarStateWatts = secondaryEntity
+    ? Math.max(getEntityStateWatts(hass, secondaryEntity), 0)
+    : 0;
+
+  const sumTotalConfig = config.entities.solar2?.secondary_info?.sum_total;
+  const totalSolarState = sumTotalConfig
+    ? solarStateWatts + secondarySolarStateWatts
+    : solarStateWatts;
+
+  if (isEntityInverted(config, "solar2")) return onlyNegative(totalSolarState);
+
+  return onlyPositive(totalSolarState);
+};
+
+export const getSolar2SecondaryState = (hass: HomeAssistant, config: FlowCardPlusConfig) =>
+  getSecondaryState(hass, config, "solar2");
