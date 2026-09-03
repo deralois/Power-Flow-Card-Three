@@ -94,4 +94,44 @@ describe("power flow ui editor", () => {
     const config = configChanged.mock.calls[0]?.[0]?.detail?.config;
     expect(config.entities.grid).toEqual({ entity: "sensor.new_grid" });
   });
+
+  test("valueChanged nests updates into the solar2/battery2 pages the same way", async () => {
+    const editor = new PowerFlowCardPlusEditor();
+    (editor as any).hass = { localize: vi.fn() };
+    await editor.setConfig({
+      type: "custom:power-flow-card-three",
+      entities: { grid: { entity: "sensor.grid" } },
+    } as any);
+
+    const solar2Changed = vi.fn();
+    editor.addEventListener("config-changed", solar2Changed);
+    (editor as any)._currentConfigPage = "solar2";
+    (editor as any)._valueChanged({ detail: { value: { entity: "sensor.solar2" } } });
+    expect(solar2Changed.mock.calls[0]?.[0]?.detail?.config.entities.solar2).toEqual({
+      entity: "sensor.solar2",
+    });
+
+    const battery2Changed = vi.fn();
+    editor.addEventListener("config-changed", battery2Changed);
+    (editor as any)._currentConfigPage = "battery2";
+    (editor as any)._valueChanged({ detail: { value: { entity: "sensor.battery2" } } });
+    expect(battery2Changed.mock.calls[0]?.[0]?.detail?.config.entities.battery2).toEqual({
+      entity: "sensor.battery2",
+    });
+  });
+
+  test("setConfig accepts a config containing entities.solar2 and entities.battery2", async () => {
+    const editor = new PowerFlowCardPlusEditor();
+
+    await expect(
+      editor.setConfig({
+        type: "custom:power-flow-card-three",
+        entities: {
+          grid: { entity: "sensor.grid" },
+          solar2: { entity: "sensor.solar2" },
+          battery2: { entity: "sensor.battery2", state_of_charge: "sensor.battery2_soc" },
+        },
+      } as any)
+    ).resolves.not.toThrow();
+  });
 });

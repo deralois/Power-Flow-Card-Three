@@ -195,3 +195,163 @@ describe("_computeRenderData", () => {
     expect(Number.isNaN(data.solar.state.total)).toBe(false);
   });
 });
+
+describe("setConfig: solar2 / battery2", () => {
+  test("accepts a config with only solar2 configured (no grid/solar/battery)", () => {
+    const config = {
+      type: "custom:power-flow-card-three",
+      entities: { solar2: { entity: "sensor.solar2" } },
+    } as PowerFlowCardPlusConfig;
+    const card = new PowerFlowCardPlus();
+    expect(() => card.setConfig(config)).not.toThrow();
+  });
+
+  test("accepts a config with only battery2 configured (no grid/solar/battery)", () => {
+    const config = {
+      type: "custom:power-flow-card-three",
+      entities: { battery2: { entity: "sensor.battery2" } },
+    } as PowerFlowCardPlusConfig;
+    const card = new PowerFlowCardPlus();
+    expect(() => card.setConfig(config)).not.toThrow();
+  });
+
+  test("still throws when neither a primary nor a secondary entity is configured", () => {
+    const config = {
+      type: "custom:power-flow-card-three",
+      entities: {},
+    } as PowerFlowCardPlusConfig;
+    const card = new PowerFlowCardPlus();
+    expect(() => card.setConfig(config)).toThrow();
+  });
+});
+
+describe("_computeRenderData: solar2 / battery2", () => {
+  test("backward-compat: solar2/battery2 unconfigured — has is false, solar1/battery1 unaffected", () => {
+    const config = {
+      type: "custom:power-flow-card-three",
+      entities: {
+        grid: { entity: "sensor.grid" },
+        solar: { entity: "sensor.solar" },
+        battery: { entity: "sensor.battery" },
+      },
+    } as PowerFlowCardPlusConfig;
+    const hass = makeHass({
+      "sensor.grid": "0",
+      "sensor.solar": "1000",
+      "sensor.battery": "200",
+    });
+    const card = makeCard(config, hass) as unknown as {
+      _computeRenderData: () => ReturnType<typeof computeRenderDataShape> & {
+        solar2: { has: boolean };
+        battery2: { has: boolean };
+      };
+    };
+    const data = card._computeRenderData();
+
+    expect(data.solar2.has).toBe(false);
+    expect(data.battery2.has).toBeFalsy();
+    // Same result as the pre-existing "case 2" scenario: solar alone covers home.
+    expect(data.solar.state.toHome).toBe(1000);
+  });
+
+  test("only solar2 configured (no solar1): solar2 covers home on its own", () => {
+    const config = {
+      type: "custom:power-flow-card-three",
+      entities: {
+        grid: { entity: "sensor.grid" },
+        solar2: { entity: "sensor.solar2" },
+      },
+    } as PowerFlowCardPlusConfig;
+    const hass = makeHass({ "sensor.grid": "0", "sensor.solar2": "800" });
+    const card = makeCard(config, hass) as unknown as {
+      _computeRenderData: () => ReturnType<typeof computeRenderDataShape> & {
+        solar2: { has: boolean; state: { total: number | null; toHome: number | null } };
+      };
+    };
+    const data = card._computeRenderData();
+
+    expect(data.solar.has).toBe(false);
+    expect(data.solar2.has).toBe(true);
+    expect(data.solar2.state.total).toBe(800);
+    expect(data.solar2.state.toHome).toBe(800);
+  });
+
+  test("solar1 + solar2 both producing: shares are proportional and sum back to the combined total", () => {
+    const config = {
+      type: "custom:power-flow-card-three",
+      entities: {
+        grid: { entity: "sensor.grid" },
+        solar: { entity: "sensor.solar" },
+        solar2: { entity: "sensor.solar2" },
+      },
+    } as PowerFlowCardPlusConfig;
+    // grid at 0 -> dependency rule zeroes grid's flows, combined solar (900) covers all of home
+    const hass = makeHass({
+      "sensor.grid": "0",
+      "sensor.solar": "600",
+      "sensor.solar2": "300",
+    });
+    const card = makeCard(config, hass) as unknown as {
+      _computeRenderData: () => ReturnType<typeof computeRenderDataShape> & {
+        solar2: { has: boolean; state: { toHome: number | null } };
+      };
+    };
+    const data = card._computeRenderData();
+
+    // Combined toHome is 900 (600 + 300), split 2:1 by each source's own production.
+    expect(data.solar.state.toHome).toBe(600);
+    expect(data.solar2.state.toHome).toBe(300);
+    expect((data.solar.state.toHome ?? 0) + (data.solar2.state.toHome ?? 0)).toBe(900);
+  });
+
+  test("only battery2 configured (no battery1): battery2 discharges to cover home", () => {
+    const config = {
+      type: "custom:power-flow-card-three",
+      entities: {
+        grid: { entity: "sensor.grid" },
+        battery2: { entity: "sensor.battery2" },
+      },
+    } as PowerFlowCardPlusConfig;
+    const hass = makeHass({ "sensor.grid": "0", "sensor.battery2": "250" });
+    const card = makeCard(config, hass) as unknown as {
+      _computeRenderData: () => ReturnType<typeof computeRenderDataShape> & {
+        battery2: {
+          has: boolean | string;
+          state: { fromBattery: number | null; toHome: number | null };
+        };
+      };
+    };
+    const data = card._computeRenderData();
+
+    expect(data.battery.has).toBeFalsy();
+    expect(data.battery2.has).toBeTruthy();
+    expect(data.battery2.state.fromBattery).toBe(250);
+    expect(data.battery2.state.toHome).toBe(250);
+  });
+
+  test("battery1 + battery2 both discharging: shares are proportional to each battery's own discharge", () => {
+    const config = {
+      type: "custom:power-flow-card-three",
+      entities: {
+        grid: { entity: "sensor.grid" },
+        battery: { entity: "sensor.battery" },
+        battery2: { entity: "sensor.battery2" },
+      },
+    } as PowerFlowCardPlusConfig;
+    const hass = makeHass({
+      "sensor.grid": "0",
+      "sensor.battery": "400",
+      "sensor.battery2": "200",
+    });
+    const card = makeCard(config, hass) as unknown as {
+      _computeRenderData: () => ReturnType<typeof computeRenderDataShape> & {
+        battery2: { has: boolean | string; state: { toHome: number | null } };
+      };
+    };
+    const data = card._computeRenderData();
+
+    expect(data.battery.state.toHome).toBe(400);
+    expect(data.battery2.state.toHome).toBe(200);
+    expect((data.battery.state.toHome ?? 0) + (data.battery2.state.toHome ?? 0)).toBe(600);
+  });
+});
