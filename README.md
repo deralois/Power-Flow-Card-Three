@@ -33,10 +33,8 @@ auf `master` automatisch über GitHub Actions aktualisiert
 (`.github/workflows/build-and-publish.yml`) — HACS findet ihn dort ohne
 zusätzliche Releases.
 
-Wichtig: HACS-Repos müssen **öffentlich** sein. Dieses Repo ist aktuell privat;
-es muss vor der Installation über die GitHub-Einstellungen auf öffentlich
-gestellt werden (siehe Abschnitt „Lizenz und Attribution" unten für die
-rechtlichen Implikationen).
+Wichtig: HACS-Repos müssen **öffentlich** sein — dieses Repo ist es (siehe Abschnitt
+„Lizenz und Attribution" unten für die rechtlichen Implikationen davon).
 
 ### Manuell
 
@@ -45,6 +43,41 @@ rechtlichen Implikationen).
 2. Einstellungen → Dashboards → Ressourcen → Ressource hinzufügen:
    URL `/local/power-flow-card-three.js`, Typ „JavaScript-Modul"
 3. Karte mit `type: custom:power-flow-card-three` verwenden
+
+## Konfiguration: zweite PV-Anlage und zweite Batterie
+
+Zusätzlich zu den bestehenden `entities.solar` und `entities.battery` (unverändert,
+bestehende Configs funktionieren ohne Anpassung weiter) gibt es jetzt optional
+`entities.solar2` und `entities.battery2` mit demselben Feld-Set:
+
+```yaml
+type: custom:power-flow-card-three
+entities:
+  grid:
+    entity: sensor.netz_leistung
+  solar:
+    entity: sensor.pv1_leistung
+  solar2:
+    entity: sensor.pv2_leistung
+  battery:
+    entity: sensor.batterie1_leistung
+    state_of_charge: sensor.batterie1_ladezustand
+  battery2:
+    entity: sensor.batterie2_leistung
+    state_of_charge: sensor.batterie2_ladezustand
+```
+
+Im UI-Editor erscheinen „Solar 2" und „Batterie 2" als eigene Unterseiten, sobald
+das Repo aktualisiert ist — keine Migration nötig, die Felder sind rein additiv.
+
+Beide zusätzlichen Quellen bekommen ein eigenes Icon mit eigenem Ladezustand/eigener
+Leistungsanzeige (direkt vom jeweiligen Sensor, keine Näherung). Für die Fluss-Pfeile
+zu Haus und Netz gilt: Da elektrisch nicht unterscheidbar ist, welche der beiden
+PV-Anlagen bzw. Batterien welchen Verbraucher konkret speist, werden die kombinierten
+Gesamtwerte proportional nach Erzeugungs- bzw. Entladeanteil auf die beiden Pfeile
+aufgeteilt — die Summe stimmt immer, die Aufteilung ist eine plausible Näherung. Der
+Ladefluss **zur** Batterie bleibt ein einzelner, gemeinsamer Pfeil (keine Unterscheidung,
+welche PV-Anlage welche Batterie lädt).
 
 ## Struktur
 
