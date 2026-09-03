@@ -36,8 +36,18 @@ const CONFIG_PAGES: {
     schema: solarSchema,
   },
   {
+    page: "solar2",
+    icon: "mdi:solar-power-variant",
+    schema: solarSchema,
+  },
+  {
     page: "battery",
     icon: "mdi:battery-high",
+    schema: batterySchema,
+  },
+  {
+    page: "battery2",
+    icon: "mdi:battery-charging-high",
     schema: batterySchema,
   },
   {

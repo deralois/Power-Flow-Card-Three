@@ -49,8 +49,10 @@ export const cardConfigStruct = assign(
     no_labels: optional(boolean()),
     entities: object({
       battery: optional(any()),
+      battery2: optional(any()),
       grid: optional(any()),
       solar: optional(any()),
+      solar2: optional(any()),
       home: optional(any()),
       fossil_fuel_percentage: optional(any()),
       individual: optional(any()),
