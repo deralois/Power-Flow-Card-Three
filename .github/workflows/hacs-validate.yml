@@ -1,0 +1,22 @@
+name: HACS validation
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  validate-hacs:
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: HACS validation
+        uses: "hacs/action@main"
+        with:
+          category: "plugin"
+          # brands/images are store-listing polish (HA brands repo entry,
+          # screenshots) that don't matter for a private custom repository.
+          ignore: "brands images"
