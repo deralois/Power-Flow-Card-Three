@@ -28,7 +28,7 @@ describe("power flow ui editor", () => {
     const configChanged = vi.fn();
     editor.addEventListener("config-changed", configChanged);
     (editor as any)._config = {
-      type: "custom:power-flow-card-plus",
+      type: "custom:power-flow-card-three",
       entities: {},
       watt_threshold: 900,
       w_decimals: 1,
@@ -51,7 +51,7 @@ describe("power flow ui editor", () => {
     const configChanged = vi.fn();
     editor.addEventListener("config-changed", configChanged);
     (editor as any)._config = {
-      type: "custom:power-flow-card-plus",
+      type: "custom:power-flow-card-three",
       entities: {
         individual: [{ entity: "sensor.existing" }],
         individual1: { entity: "sensor.legacy_1" },
@@ -78,7 +78,7 @@ describe("power flow ui editor", () => {
     editor.addEventListener("config-changed", configChanged);
     (editor as any).hass = { localize: vi.fn() };
     (editor as any)._config = {
-      type: "custom:power-flow-card-plus",
+      type: "custom:power-flow-card-three",
       entities: {
         grid: { entity: "sensor.old_grid" },
       },

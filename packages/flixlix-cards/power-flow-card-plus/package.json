@@ -19,7 +19,7 @@
     "type": "git",
     "url": "git+https://github.com/deralois/Power-Flow-Card-Three.git"
   },
-  "author": "flixlix",
+  "author": "Aljoscha Schneider (https://github.com/deralois)",
   "bugs": {
     "url": "https://github.com/deralois/Power-Flow-Card-Three/issues"
   },
@@ -70,6 +70,7 @@
     "eslint-plugin-lit": "catalog:packages",
     "eslint-plugin-wc": "catalog:packages",
     "jest": "catalog:packages",
+    "jsdom": "catalog:",
     "prettier": "catalog:",
     "prettier-plugin-embed": "catalog:packages",
     "rollup": "catalog:packages",

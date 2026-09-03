@@ -3,6 +3,7 @@
   "version": "0.0.5",
   "private": true,
   "type": "module",
+  "author": "Aljoscha Schneider (https://github.com/deralois)",
   "exports": {
     "./i18n": "./src/i18n/index.ts",
     "./style": "./src/style/index.ts",

@@ -3,7 +3,7 @@
 import { describe, expect, test } from "vitest";
 
 import { type PowerFlowCardPlusConfig } from "@flixlix-cards/shared/types";
-import { PowerFlowCardPlus } from "../src/power-flow-card-plus";
+import { PowerFlowCardPlus } from "../src/power-flow-card-three";
 
 // jsdom does not provide ResizeObserver; stub it so the card's `updated` hook doesn't throw
 (globalThis as any).ResizeObserver = class {
@@ -78,7 +78,7 @@ declare function computeRenderDataShape(): {
 describe("render", () => {
   test("renders correctly", () => {
     const config = {
-      type: "custom:power-flow-card-plus",
+      type: "custom:power-flow-card-three",
       entities: {
         grid: { entity: "sensor.grid" },
         solar: { entity: "sensor.solar" },
@@ -96,7 +96,7 @@ describe("render", () => {
 describe("_computeRenderData", () => {
   test("case 1: grid-only consumption — fromGrid is the entity value and toHome follows", () => {
     const config = {
-      type: "custom:power-flow-card-plus",
+      type: "custom:power-flow-card-three",
       entities: {
         grid: { entity: "sensor.grid" },
       },
@@ -116,7 +116,7 @@ describe("_computeRenderData", () => {
 
   test("case 2: solar covers home and grid is zero — dependency rule zeroes grid toHome", () => {
     const config = {
-      type: "custom:power-flow-card-plus",
+      type: "custom:power-flow-card-three",
       entities: {
         grid: { entity: "sensor.grid" },
         solar: { entity: "sensor.solar" },
@@ -138,7 +138,7 @@ describe("_computeRenderData", () => {
 
   test("case 3: tolerance zeroing — grid below tolerance is treated as 0", () => {
     const config = {
-      type: "custom:power-flow-card-plus",
+      type: "custom:power-flow-card-three",
       entities: {
         grid: { entity: "sensor.grid", display_zero_tolerance: 5 } as any,
       },
@@ -156,7 +156,7 @@ describe("_computeRenderData", () => {
 
   test("case 4: negative individual entity stays visible (Plan 001 regression guard)", () => {
     const config = {
-      type: "custom:power-flow-card-plus",
+      type: "custom:power-flow-card-three",
       entities: {
         grid: { entity: "sensor.grid" },
         individual: [{ entity: "sensor.device" }],
@@ -177,7 +177,7 @@ describe("_computeRenderData", () => {
 
   test("case 5: unavailable entity — no NaN in grid state fields", () => {
     const config = {
-      type: "custom:power-flow-card-plus",
+      type: "custom:power-flow-card-three",
       entities: {
         grid: { entity: "sensor.grid" },
         solar: { entity: "sensor.solar" },
