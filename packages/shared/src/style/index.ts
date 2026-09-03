@@ -58,6 +58,16 @@ export const styles = css`
     --text-battery-in-color: var(--energy-battery-in-color);
     --text-battery-out-color: var(--energy-battery-out-color);
     --home-circle-animation: rotate-in 0.6s ease-in;
+
+    /* second PV system / second battery */
+    --icon-solar2-color: var(--energy-solar2-color, #ffc107);
+    --text-solar2-color: var(--primary-text-color);
+    --secondary-text-solar2-color: var(--primary-text-color);
+    --icon-battery2-color: var(--energy-battery2-in-color, #7e57c2);
+    --circle-battery2-color: var(--energy-battery2-in-color, #7e57c2);
+    --text-battery2-state-of-charge-color: var(--primary-text-color);
+    --text-battery2-in-color: var(--energy-battery2-in-color);
+    --text-battery2-out-color: var(--energy-battery2-out-color);
   }
 
   ha-card {
@@ -75,6 +85,25 @@ export const styles = css`
   .card-content {
     position: relative;
     margin: 0 auto;
+  }
+
+  /*
+   * Wraps the original 3 rows + their flow-line overlay. The overlay's
+   * ".lines" is bottom-anchored to the nearest "position: relative"
+   * ancestor — without this wrapper, adding the battery2 row below would
+   * grow .card-content from the bottom and silently shift every existing
+   * flow line up. Solar2's row above doesn't need this (it only grows
+   * .card-content from the top, which the bottom-anchored lines don't
+   * care about).
+   */
+  .core-flow-rows {
+    position: relative;
+  }
+
+  .row-solar2,
+  .row-battery2 {
+    margin-bottom: 8px;
+    margin-top: 8px;
   }
 
   .circle {
@@ -149,6 +178,49 @@ export const styles = css`
     bottom: 100px;
     height: 156px;
   }
+
+  /*
+   * Solar2/battery2 flow lines live outside .core-flow-rows (their rows are
+   * siblings above/below it) but need to visually reach into it, down to
+   * home. Best-effort positioning — depends on which optional rows are
+   * present above/below, so expect to fine-tune these against a real card.
+   */
+  .lines-solar2 {
+    position: absolute;
+    top: -150px;
+    left: var(--size-circle-entity);
+    width: 100%;
+    height: 296px;
+    display: flex;
+    justify-content: flex-start;
+    padding: 0 16px 16px;
+    box-sizing: border-box;
+    pointer-events: none;
+  }
+  .lines-solar2 svg {
+    width: var(--lines-svg-flat-width);
+    height: 100%;
+    max-width: 340px;
+    position: relative;
+  }
+  .lines-battery2 {
+    position: absolute;
+    bottom: -150px;
+    left: var(--size-circle-entity);
+    width: 100%;
+    height: 296px;
+    display: flex;
+    justify-content: flex-start;
+    padding: 0 16px 16px;
+    box-sizing: border-box;
+    pointer-events: none;
+  }
+  .lines-battery2 svg {
+    width: var(--lines-svg-flat-width);
+    height: 100%;
+    max-width: 340px;
+    position: relative;
+  }
   .lines svg {
     width: var(--lines-svg-flat-width);
     height: 100%;
@@ -206,6 +278,13 @@ export const styles = css`
     height: 110px;
     justify-content: flex-end;
   }
+  .circle-container.solar2 {
+    height: 130px;
+  }
+  .circle-container.battery2 {
+    height: 110px;
+    justify-content: flex-end;
+  }
   .spacer {
     width: var(--size-circle-entity);
   }
@@ -215,6 +294,11 @@ export const styles = css`
   }
   #battery-grid {
     stroke: var(--battery-grid-line);
+  }
+  #battery2-grid {
+    /* battery2's line only ever shows its own export-to-grid direction
+       (charging stays a shared/generic line on battery1, see battery2-to-grid.ts) */
+    stroke: var(--energy-battery2-out-color);
   }
   ha-icon {
     display: inline;
@@ -406,6 +490,29 @@ export const styles = css`
     stroke-width: 4;
     fill: var(--energy-solar-color);
   }
+  .solar2 {
+    color: var(--primary-text-color);
+  }
+  .solar2 .circle {
+    border-color: var(--energy-solar2-color);
+  }
+  .solar2 ha-icon:not(.small) {
+    color: var(--icon-solar2-color);
+  }
+  circle.solar2,
+  path.solar2 {
+    stroke: var(--energy-solar2-color);
+  }
+  circle.solar2 {
+    stroke-width: 4;
+    fill: var(--energy-solar2-color);
+  }
+  span.solar2 {
+    color: var(--text-solar2-color);
+  }
+  .solar2 span.secondary-info {
+    color: var(--secondary-text-solar2-color);
+  }
   .battery .circle {
     border-color: var(--circle-battery-color);
   }
@@ -449,6 +556,23 @@ export const styles = css`
   }
   .battery ha-icon:not(.small) {
     color: var(--icon-battery-color);
+  }
+  .battery2 .circle {
+    border-color: var(--circle-battery2-color);
+  }
+  path.battery2-home,
+  circle.battery2-home {
+    stroke: var(--energy-battery2-out-color);
+  }
+  circle.battery2-home {
+    stroke-width: 4;
+    fill: var(--energy-battery2-out-color);
+  }
+  .battery2 ha-icon:not(.small) {
+    color: var(--icon-battery2-color);
+  }
+  #battery2-state-of-charge-text {
+    color: var(--text-battery2-state-of-charge-color);
   }
 
   path.return,
