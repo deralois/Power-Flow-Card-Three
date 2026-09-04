@@ -72,3 +72,27 @@ export const buildCombinedBattery = (
     fromBattery: net > 0 ? net : 0,
   };
 };
+
+export type CombinableStateOfCharge = {
+  has: boolean;
+  state: number | null;
+};
+
+/**
+ * Averages two batteries' state of charge (e.g. 60% + 40% -> 50%). A plain
+ * average rather than a capacity-weighted one, since the card has no notion
+ * of each battery's capacity — matches what a user comparing two percentage
+ * gauges would expect. Falls back to whichever single reading is available
+ * when the other battery is unconfigured or its SoC entity isn't set, which
+ * keeps single-battery configs byte-for-byte unchanged.
+ */
+export const buildCombinedStateOfCharge = (
+  soc1: CombinableStateOfCharge,
+  soc2?: CombinableStateOfCharge
+): number | null => {
+  const value1 = soc1.has && soc1.state !== null ? soc1.state : null;
+  const value2 = soc2?.has && soc2.state !== null ? soc2.state : null;
+
+  if (value1 !== null && value2 !== null) return (value1 + value2) / 2;
+  return value1 ?? value2;
+};

@@ -358,4 +358,34 @@ describe("_computeRenderData: solar2 / battery2", () => {
     // battery2 keeps its own raw discharge reading for its satellite bubble.
     expect(data.battery2.state.fromBattery).toBe(200);
   });
+
+  test("battery1 + battery2 state of charge: the combined node averages, each keeps its own reading", () => {
+    const config = {
+      type: "custom:power-flow-card-three",
+      entities: {
+        grid: { entity: "sensor.grid" },
+        battery: { entity: "sensor.battery", state_of_charge: "sensor.battery_soc" },
+        battery2: { entity: "sensor.battery2", state_of_charge: "sensor.battery2_soc" },
+      },
+    } as PowerFlowCardPlusConfig;
+    const hass = makeHass({
+      "sensor.grid": "0",
+      "sensor.battery": "0",
+      "sensor.battery_soc": "60",
+      "sensor.battery2": "0",
+      "sensor.battery2_soc": "40",
+    });
+    const card = makeCard(config, hass) as unknown as {
+      _computeRenderData: () => ReturnType<typeof computeRenderDataShape> & {
+        battery2: { state_of_charge: { state: number | null } };
+        battery1Own: { state_of_charge: { state: number | null } };
+      };
+    };
+    const data = card._computeRenderData();
+
+    expect(data.battery.state_of_charge.state).toBe(50);
+    // battery1Own/battery2 each keep their own raw reading for their satellite bubbles.
+    expect(data.battery1Own.state_of_charge.state).toBe(60);
+    expect(data.battery2.state_of_charge.state).toBe(40);
+  });
 });

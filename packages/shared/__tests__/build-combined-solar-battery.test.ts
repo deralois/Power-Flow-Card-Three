@@ -1,6 +1,10 @@
 import { describe, expect, test } from "vitest";
 
-import { buildCombinedBattery, buildCombinedSolar } from "../src/utils/build-combined-solar-battery";
+import {
+  buildCombinedBattery,
+  buildCombinedSolar,
+  buildCombinedStateOfCharge,
+} from "../src/utils/build-combined-solar-battery";
 
 describe("buildCombinedSolar", () => {
   test("only solar1 configured: result is identical to solar1 alone (backward-compat regression)", () => {
@@ -94,5 +98,42 @@ describe("buildCombinedBattery", () => {
       toBattery: 0,
       fromBattery: 200,
     });
+  });
+});
+
+describe("buildCombinedStateOfCharge", () => {
+  test("only battery1 configured: result is identical to battery1 alone (backward-compat regression)", () => {
+    const soc1 = { has: true, state: 73 };
+    expect(buildCombinedStateOfCharge(soc1)).toBe(73);
+    expect(buildCombinedStateOfCharge(soc1, undefined)).toBe(73);
+  });
+
+  test("both configured: plain average, not capacity-weighted", () => {
+    const soc1 = { has: true, state: 60 };
+    const soc2 = { has: true, state: 40 };
+    expect(buildCombinedStateOfCharge(soc1, soc2)).toBe(50);
+  });
+
+  test("battery2 configured but its SoC entity isn't set: falls back to battery1 alone", () => {
+    const soc1 = { has: true, state: 73 };
+    const soc2 = { has: true, state: null };
+    expect(buildCombinedStateOfCharge(soc1, soc2)).toBe(73);
+  });
+
+  test("battery1 has no SoC reading but battery2 does: falls back to battery2 alone", () => {
+    const soc1 = { has: true, state: null };
+    const soc2 = { has: true, state: 40 };
+    expect(buildCombinedStateOfCharge(soc1, soc2)).toBe(40);
+  });
+
+  test("battery2 has=false is excluded even if a stale state is present", () => {
+    const soc1 = { has: true, state: 73 };
+    const soc2 = { has: false, state: 40 };
+    expect(buildCombinedStateOfCharge(soc1, soc2)).toBe(73);
+  });
+
+  test("neither has a reading: null", () => {
+    const soc1 = { has: true, state: null };
+    expect(buildCombinedStateOfCharge(soc1)).toBeNull();
   });
 });

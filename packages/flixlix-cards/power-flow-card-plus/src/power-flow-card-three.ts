@@ -74,7 +74,11 @@ import {
   getTopRightIndividual,
 } from "@flixlix-cards/shared/utils/compute-individual-position";
 import { computePowerDistributionAfterSolarAndBattery } from "@flixlix-cards/shared/utils/compute-power-distribution";
-import { buildCombinedBattery, buildCombinedSolar } from "@flixlix-cards/shared/utils/build-combined-solar-battery";
+import {
+  buildCombinedBattery,
+  buildCombinedSolar,
+  buildCombinedStateOfCharge,
+} from "@flixlix-cards/shared/utils/build-combined-solar-battery";
 import { displayValue } from "@flixlix-cards/shared/utils/display-value";
 import { defaultValues, getDefaultConfig } from "@flixlix-cards/shared/utils/get-default-config";
 import { registerCustomCard } from "@flixlix-cards/shared/utils/register-custom-card";
@@ -946,7 +950,7 @@ export class PowerFlowCardPlus extends LitElement {
       entity: battery.entity,
       mainEntity: battery.mainEntity,
       state: { toBattery: battery.state.toBattery, fromBattery: battery.state.fromBattery },
-      state_of_charge: battery.state_of_charge,
+      state_of_charge: { ...battery.state_of_charge },
       tap_action: battery.tap_action,
       hold_action: battery.hold_action,
       double_tap_action: battery.double_tap_action,
@@ -967,11 +971,16 @@ export class PowerFlowCardPlus extends LitElement {
         fromBattery: battery2.state.fromBattery,
       }
     );
+    const combinedStateOfCharge = buildCombinedStateOfCharge(
+      { has: !!battery.has, state: battery1Own.state_of_charge.state },
+      { has: !!battery2.has, state: battery2.state_of_charge.state }
+    );
     solar.has = combinedSolarTotals.has;
     solar.state.total = combinedSolarTotals.total;
     battery.has = combinedBatteryTotals.has;
     battery.state.toBattery = combinedBatteryTotals.toBattery;
     battery.state.fromBattery = combinedBatteryTotals.fromBattery;
+    battery.state_of_charge.state = combinedStateOfCharge;
     if (solar2.has) {
       solar.name = this.hass.localize(
         "ui.panel.lovelace.cards.energy.energy_distribution.solar"
