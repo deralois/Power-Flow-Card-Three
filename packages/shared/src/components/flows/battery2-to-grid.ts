@@ -33,13 +33,13 @@ export const flowBattery2ToGrid = (config: FlowCardPlusConfig, { grid, battery2,
     <svg
       viewBox="0 0 100 100"
       xmlns="http://www.w3.org/2000/svg"
-      preserveAspectRatio="xMidYMid slice"
+      preserveAspectRatio="none"
       id="battery2-grid-flow"
     >
       <path
         id="battery2-grid"
         class="${styleLine(battery2.state.toGrid || 0, config)}"
-        d="M45,100 v-45 c0,-20 -10,-20 -30,-20 h-20"
+        d="M48.6,95.1 C48.6,82.7 -19.6,82.7 -19.6,70.4 C-19.6,51.1 -5.6,51.1 -5.6,31.7"
         vector-effect="non-scaling-stroke"
       ></path>
       ${battery2ToGridDot(config, battery2, newDur)}

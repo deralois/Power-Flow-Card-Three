@@ -59,12 +59,23 @@ export const styles = css`
     --text-battery-out-color: var(--energy-battery-out-color);
     --home-circle-animation: rotate-in 0.6s ease-in;
 
-    /* second PV system / second battery */
-    --icon-solar2-color: var(--energy-solar2-color, #ffc107);
+    /*
+     * second PV system / second battery. Unlike --energy-solar-color etc.
+     * (which Home Assistant's own theme defines globally, so this card only
+     * ever needs a fallback), HA has no concept of a second source — these
+     * names are ours alone, so they need real default VALUES here, not just
+     * a fallback on their derived --icon-*/--text-* variables, or every
+     * plain var(--energy-solar2-color) usage (e.g. border-color) resolves
+     * to nothing and silently falls back to the browser default (white).
+     */
+    --energy-solar2-color: #ffc107;
+    --energy-battery2-in-color: #7e57c2;
+    --energy-battery2-out-color: #26a69a;
+    --icon-solar2-color: var(--energy-solar2-color);
     --text-solar2-color: var(--primary-text-color);
     --secondary-text-solar2-color: var(--primary-text-color);
-    --icon-battery2-color: var(--energy-battery2-in-color, #7e57c2);
-    --circle-battery2-color: var(--energy-battery2-in-color, #7e57c2);
+    --icon-battery2-color: var(--energy-battery2-in-color);
+    --circle-battery2-color: var(--energy-battery2-in-color);
     --text-battery2-state-of-charge-color: var(--primary-text-color);
     --text-battery2-in-color: var(--energy-battery2-in-color);
     --text-battery2-out-color: var(--energy-battery2-out-color);
@@ -104,6 +115,19 @@ export const styles = css`
   .row-battery2 {
     margin-bottom: 8px;
     margin-top: 8px;
+  }
+  /*
+   * Compound selector for higher specificity than the plain ".row" rule
+   * below (equal-specificity same-class rules resolve by source order, and
+   * this one needs to win regardless of where ".row" ends up after future
+   * edits). Centering — rather than trying to replicate row 1/3's dynamic
+   * space-between slot math from a row with a different item count — lines
+   * solar2/battery2 up with solar/battery in the common case, where slot 2
+   * of the primary row is itself horizontally centered.
+   */
+  .row.row-solar2,
+  .row.row-battery2 {
+    justify-content: center;
   }
 
   .circle {
@@ -182,15 +206,19 @@ export const styles = css`
   /*
    * Solar2/battery2 flow lines live outside .core-flow-rows (their rows are
    * siblings above/below it) but need to visually reach into it, down to
-   * home. Best-effort positioning — depends on which optional rows are
-   * present above/below, so expect to fine-tune these against a real card.
+   * home. Same left/width as the primary ".lines" box (same column as
+   * solar/battery, see the row-solar2/row-battery2 leading spacer in
+   * render()) — only taller, to cover the extra row. preserveAspectRatio
+   * "none" on these SVGs (unlike the original six, which use "slice") keeps
+   * the horizontal scale identical to the primary lines while letting the
+   * extra height stretch independently, instead of being cropped.
    */
   .lines-solar2 {
     position: absolute;
-    top: -150px;
+    bottom: 100px;
     left: var(--size-circle-entity);
     width: 100%;
-    height: 296px;
+    height: 280px;
     display: flex;
     justify-content: flex-start;
     padding: 0 16px 16px;
@@ -198,17 +226,17 @@ export const styles = css`
     pointer-events: none;
   }
   .lines-solar2 svg {
-    width: var(--lines-svg-flat-width);
+    width: var(--lines-svg-not-flat-width);
     height: 100%;
     max-width: 340px;
     position: relative;
   }
   .lines-battery2 {
     position: absolute;
-    bottom: -150px;
+    top: 80px;
     left: var(--size-circle-entity);
     width: 100%;
-    height: 296px;
+    height: 300px;
     display: flex;
     justify-content: flex-start;
     padding: 0 16px 16px;
@@ -216,7 +244,7 @@ export const styles = css`
     pointer-events: none;
   }
   .lines-battery2 svg {
-    width: var(--lines-svg-flat-width);
+    width: var(--lines-svg-not-flat-width);
     height: 100%;
     max-width: 340px;
     position: relative;

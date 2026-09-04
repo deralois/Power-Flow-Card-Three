@@ -29,13 +29,13 @@ export const flowSolar2ToGrid = (config: FlowCardPlusConfig, { grid, solar2, new
     <svg
       viewBox="0 0 100 100"
       xmlns="http://www.w3.org/2000/svg"
-      preserveAspectRatio="xMidYMid slice"
+      preserveAspectRatio="none"
       id="solar2-grid-flow"
     >
       <path
         id="solar2-return"
         class="return ${styleLine(solar2.state.toGrid || 0, config)}"
-        d="M47,0 v45 c0,20 -10,20 -30,20 h-20"
+        d="M48.6,3.8 C48.6,20.8 -19.6,20.8 -19.6,37.9 C-19.6,58.7 -5.6,58.7 -5.6,79.5"
         vector-effect="non-scaling-stroke"
       ></path>
       ${solar2ToGridDot(config, solar2, newDur)}
