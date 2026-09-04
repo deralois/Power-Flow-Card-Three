@@ -10,16 +10,76 @@ import { isNumberValue } from "@flixlix-cards/shared/utils/utils";
 import { html, nothing } from "lit";
 import { generalSecondarySpan } from "./spans/general-secondary-span";
 
+/**
+ * A small satellite bubble beside the main solar circle, showing one PV
+ * system's own reading, connected to the combined circle by a short
+ * straight line. Used for the "3 bubbles" layout when a second PV system
+ * is configured (see power-flow-card-three.ts `solar1Own`/`solar2`).
+ */
+const satelliteElement = (
+  main: CardMainContext,
+  config: FlowCardPlusConfig,
+  {
+    data,
+    position,
+    colorClass,
+  }: {
+    data: {
+      name: string;
+      icon: string;
+      entity?: string;
+      total: number | null;
+      tap_action?: any;
+      hold_action?: any;
+      double_tap_action?: any;
+    };
+    position: "left" | "right";
+    colorClass: string;
+  }
+) => {
+  const disableEntityClick = config.clickable_entities === false;
+  return html`<div class="satellite satellite-${position}">
+    <div class="satellite-connector satellite-connector-${position} ${colorClass}"></div>
+    <div
+      class="satellite-circle ${colorClass} ${disableEntityClick ? "pointer-events-none" : ""}"
+      @click=${(e: MouseEvent) => {
+        main.onEntityClick(e, data, data.entity);
+      }}
+      @dblclick=${(e: MouseEvent) => {
+        main.onEntityDoubleClick(e, data, data.entity);
+      }}
+      @pointerdown=${(e: PointerEvent) => {
+        main.onEntityPointerDown(e, data, data.entity);
+      }}
+      @pointerup=${(e: PointerEvent) => {
+        main.onEntityPointerUp(e);
+      }}
+      @pointercancel=${(e: PointerEvent) => {
+        main.onEntityPointerUp(e);
+      }}
+    >
+      <ha-ripple .disabled=${disableEntityClick}></ha-ripple>
+      <ha-icon .icon=${data.icon}></ha-icon>
+      <span>${displayValue(main.hass, config, data.total, {})}</span>
+    </div>
+    <span class="label satellite-label">${data.name}</span>
+  </div>`;
+};
+
 export const solarElement = (
   main: CardMainContext,
   config: FlowCardPlusConfig,
   {
     entities,
     solar,
+    solar2,
+    solar1Own,
     templatesObj,
   }: {
     entities: ConfigEntities;
     solar: any;
+    solar2?: any;
+    solar1Own?: any;
     templatesObj: TemplatesObj;
   }
 ) => {
@@ -46,7 +106,8 @@ export const solarElement = (
   const bottomSolarState = sumTotalConfig
     ? solar.state.total - secondarySolarStateWatts
     : solar.state.total;
-  return html`<div class="circle-container solar">
+  const showSatellites = !!solar2?.has;
+  return html`<div class="circle-container solar ${showSatellites ? "has-satellites" : ""}">
     <span class="label">${solar.name}</span>
     <div
       class="circle ${disableEntityClick ? "pointer-events-none" : ""}"
@@ -88,5 +149,11 @@ export const solarElement = (
           </span>`
         : nothing}
     </div>
+    ${showSatellites
+      ? satelliteElement(main, config, { data: solar1Own, position: "left", colorClass: "solar" })
+      : nothing}
+    ${showSatellites
+      ? satelliteElement(main, config, { data: solar2, position: "right", colorClass: "solar2" })
+      : nothing}
   </div>`;
 };

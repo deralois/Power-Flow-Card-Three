@@ -101,7 +101,6 @@ export type EntityType =
 export type TemplatesObj = {
   gridSecondary: string | undefined;
   solarSecondary: string | undefined;
-  solar2Secondary: string | undefined;
   homeSecondary: string | undefined;
   individual: (string | undefined)[];
   nonFossilFuelSecondary: string | undefined;
@@ -135,10 +134,6 @@ export type NewDur = {
   solarToHome: number;
   individual: number[];
   nonFossil: number;
-  solar2ToHome: number;
-  solar2ToGrid: number;
-  battery2Grid: number;
-  battery2ToHome: number;
 };
 
 export type GridObject = {

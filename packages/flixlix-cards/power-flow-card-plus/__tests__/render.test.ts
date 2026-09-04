@@ -254,7 +254,7 @@ describe("_computeRenderData: solar2 / battery2", () => {
     expect(data.solar.state.toHome).toBe(1000);
   });
 
-  test("only solar2 configured (no solar1): solar2 covers home on its own", () => {
+  test("only solar2 configured (no solar1): the combined solar node shows solar2's total alone", () => {
     const config = {
       type: "custom:power-flow-card-three",
       entities: {
@@ -265,18 +265,22 @@ describe("_computeRenderData: solar2 / battery2", () => {
     const hass = makeHass({ "sensor.grid": "0", "sensor.solar2": "800" });
     const card = makeCard(config, hass) as unknown as {
       _computeRenderData: () => ReturnType<typeof computeRenderDataShape> & {
-        solar2: { has: boolean; state: { total: number | null; toHome: number | null } };
+        solar2: { has: boolean; state: { total: number | null } };
       };
     };
     const data = card._computeRenderData();
 
-    expect(data.solar.has).toBe(false);
+    // "solar" is now the combined node — with only solar2 configured it
+    // shows solar2's total alone, satisfying the dependency rule.
+    expect(data.solar.has).toBe(true);
+    expect(data.solar.state.total).toBe(800);
+    expect(data.solar.state.toHome).toBe(800);
+    // solar2 keeps its own raw reading too, for its satellite bubble.
     expect(data.solar2.has).toBe(true);
     expect(data.solar2.state.total).toBe(800);
-    expect(data.solar2.state.toHome).toBe(800);
   });
 
-  test("solar1 + solar2 both producing: shares are proportional and sum back to the combined total", () => {
+  test("solar1 + solar2 both producing: the combined node shows the sum, each keeps its own reading", () => {
     const config = {
       type: "custom:power-flow-card-three",
       entities: {
@@ -293,18 +297,19 @@ describe("_computeRenderData: solar2 / battery2", () => {
     });
     const card = makeCard(config, hass) as unknown as {
       _computeRenderData: () => ReturnType<typeof computeRenderDataShape> & {
-        solar2: { has: boolean; state: { toHome: number | null } };
+        solar2: { has: boolean; state: { total: number | null } };
       };
     };
     const data = card._computeRenderData();
 
-    // Combined toHome is 900 (600 + 300), split 2:1 by each source's own production.
-    expect(data.solar.state.toHome).toBe(600);
-    expect(data.solar2.state.toHome).toBe(300);
-    expect((data.solar.state.toHome ?? 0) + (data.solar2.state.toHome ?? 0)).toBe(900);
+    expect(data.solar.state.total).toBe(900);
+    expect(data.solar.state.toHome).toBe(900);
+    // solar1's own reading is folded into the combined node; solar2 keeps
+    // its own raw total for its satellite bubble.
+    expect(data.solar2.state.total).toBe(300);
   });
 
-  test("only battery2 configured (no battery1): battery2 discharges to cover home", () => {
+  test("only battery2 configured (no battery1): the combined battery node discharges on its own", () => {
     const config = {
       type: "custom:power-flow-card-three",
       entities: {
@@ -315,21 +320,19 @@ describe("_computeRenderData: solar2 / battery2", () => {
     const hass = makeHass({ "sensor.grid": "0", "sensor.battery2": "250" });
     const card = makeCard(config, hass) as unknown as {
       _computeRenderData: () => ReturnType<typeof computeRenderDataShape> & {
-        battery2: {
-          has: boolean | string;
-          state: { fromBattery: number | null; toHome: number | null };
-        };
+        battery2: { has: boolean | string; state: { fromBattery: number | null } };
       };
     };
     const data = card._computeRenderData();
 
-    expect(data.battery.has).toBeFalsy();
+    expect(data.battery.has).toBeTruthy();
+    expect(data.battery.state.fromBattery).toBe(250);
+    expect(data.battery.state.toHome).toBe(250);
     expect(data.battery2.has).toBeTruthy();
     expect(data.battery2.state.fromBattery).toBe(250);
-    expect(data.battery2.state.toHome).toBe(250);
   });
 
-  test("battery1 + battery2 both discharging: shares are proportional to each battery's own discharge", () => {
+  test("battery1 + battery2 both discharging: the combined node nets both, each keeps its own reading", () => {
     const config = {
       type: "custom:power-flow-card-three",
       entities: {
@@ -345,13 +348,14 @@ describe("_computeRenderData: solar2 / battery2", () => {
     });
     const card = makeCard(config, hass) as unknown as {
       _computeRenderData: () => ReturnType<typeof computeRenderDataShape> & {
-        battery2: { has: boolean | string; state: { toHome: number | null } };
+        battery2: { has: boolean | string; state: { fromBattery: number | null } };
       };
     };
     const data = card._computeRenderData();
 
-    expect(data.battery.state.toHome).toBe(400);
-    expect(data.battery2.state.toHome).toBe(200);
-    expect((data.battery.state.toHome ?? 0) + (data.battery2.state.toHome ?? 0)).toBe(600);
+    expect(data.battery.state.fromBattery).toBe(600);
+    expect(data.battery.state.toHome).toBe(600);
+    // battery2 keeps its own raw discharge reading for its satellite bubble.
+    expect(data.battery2.state.fromBattery).toBe(200);
   });
 });

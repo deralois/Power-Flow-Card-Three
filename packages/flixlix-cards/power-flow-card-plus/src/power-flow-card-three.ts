@@ -1,4 +1,3 @@
-import { battery2Element } from "@flixlix-cards/shared/components/battery2";
 import { batteryElement } from "@flixlix-cards/shared/components/battery";
 import { flowElement } from "@flixlix-cards/shared/components/flows/index";
 import { gridElement } from "@flixlix-cards/shared/components/grid";
@@ -10,7 +9,6 @@ import { individualRightTopElement } from "@flixlix-cards/shared/components/indi
 import { dashboardLinkElement } from "@flixlix-cards/shared/components/misc/dashboard-link";
 import { nonFossilElement } from "@flixlix-cards/shared/components/non-fossil";
 import { solarElement } from "@flixlix-cards/shared/components/solar";
-import { solar2Element } from "@flixlix-cards/shared/components/solar2";
 import { spacer } from "@flixlix-cards/shared/components/spacer";
 import { CIRCLE_CIRCUMFERENCE } from "@flixlix-cards/shared/const/circle";
 import { handleAction } from "@flixlix-cards/shared/ha/panels/lovelace/common/handle-action";
@@ -75,7 +73,6 @@ import {
   getTopLeftIndividual,
   getTopRightIndividual,
 } from "@flixlix-cards/shared/utils/compute-individual-position";
-import { computeBatteryShares, computeSolarShares } from "@flixlix-cards/shared/utils/compute-multi-source-shares";
 import { computePowerDistributionAfterSolarAndBattery } from "@flixlix-cards/shared/utils/compute-power-distribution";
 import { buildCombinedBattery, buildCombinedSolar } from "@flixlix-cards/shared/utils/build-combined-solar-battery";
 import { displayValue } from "@flixlix-cards/shared/utils/display-value";
@@ -124,18 +121,16 @@ export class PowerFlowCardPlus extends LitElement {
   @query("#solar-battery-flow") solarToBatteryFlow?: SVGSVGElement;
   @query("#solar-grid-flow") solarToGridFlow?: SVGSVGElement;
   @query("#solar-home-flow") solarToHomeFlow?: SVGSVGElement;
-  @query("#solar2-home-flow") solar2ToHomeFlow?: SVGSVGElement;
-  @query("#solar2-grid-flow") solar2ToGridFlow?: SVGSVGElement;
-  @query("#battery2-grid-flow") battery2GridFlow?: SVGSVGElement;
-  @query("#battery2-home-flow") battery2ToHomeFlow?: SVGSVGElement;
   private _renderData?:
     | {
         entities: PowerFlowCardPlusConfig["entities"];
         grid: GridObject;
         solar: any;
         solar2: any;
+        solar1Own: any;
         battery: any;
         battery2: any;
+        battery1Own: any;
         home: any;
         nonFossil: any;
         individualObjs: IndividualObject[];
@@ -384,8 +379,10 @@ export class PowerFlowCardPlus extends LitElement {
       grid,
       solar,
       solar2,
+      solar1Own,
       battery,
       battery2,
+      battery1Own,
       home,
       nonFossil,
       individualObjs,
@@ -425,7 +422,6 @@ export class PowerFlowCardPlus extends LitElement {
           style=${this._config.style_card_content ? this._config.style_card_content : ""}
         >
           ${solar.has ||
-          solar2.has ||
           individualObjs?.some((individual) => individual?.has) ||
           nonFossil.hasPercentage
             ? html`<div class="row">
@@ -436,17 +432,12 @@ export class PowerFlowCardPlus extends LitElement {
                   nonFossil,
                   templatesObj,
                 })}
-                ${solar2.has
-                  ? solar2Element(this, this._config, {
-                      entities,
-                      solar2,
-                      templatesObj,
-                    })
-                  : nothing}
                 ${solar.has
                   ? solarElement(this, this._config, {
                       entities,
                       solar,
+                      solar2,
+                      solar1Own,
                       templatesObj,
                     })
                   : individualObjs?.some((individual) => individual?.has)
@@ -499,14 +490,16 @@ export class PowerFlowCardPlus extends LitElement {
               : spacer}
             ${checkHasRightIndividual(individualObjs) ? spacer : nothing}
           </div>
-          ${battery.has || battery2.has || checkHasBottomIndividual(individualObjs)
+          ${battery.has || checkHasBottomIndividual(individualObjs)
             ? html`<div class="row">
                 ${spacer}
-                ${battery2.has
-                  ? battery2Element(this, this._config, { battery2, entities })
-                  : nothing}
                 ${battery.has
-                  ? batteryElement(this, this._config, { battery, entities })
+                  ? batteryElement(this, this._config, {
+                      battery,
+                      battery2,
+                      battery1Own,
+                      entities,
+                    })
                   : spacer}
                 ${individualFieldLeftBottom
                   ? individualLeftBottomElement(this, this._config, {
@@ -528,12 +521,10 @@ export class PowerFlowCardPlus extends LitElement {
             : spacer}
           ${flowElement(this._config, {
             battery,
-            battery2,
             grid,
             individual: individualObjs,
             newDur,
             solar,
-            solar2,
           })}
         </div>
         ${dashboardLinkElement(this._config, this.hass)}
@@ -921,59 +912,71 @@ export class PowerFlowCardPlus extends LitElement {
       solar.state.toBattery = 0;
       solar.state.toHome = 0;
     }
-    if (solar2.state.total === 0) {
-      solar2.state.toGrid = 0;
-      solar2.state.toBattery = 0;
-      solar2.state.toHome = 0;
-    }
     if (battery.state.fromBattery === 0) {
       battery.state.toGrid = 0;
       battery.state.toHome = 0;
     }
-    if (battery2.state.fromBattery === 0) {
-      battery2.state.toGrid = 0;
-      battery2.state.toHome = 0;
-    }
-    // Combine solar1+solar2 and battery1+battery2 into single pseudo-sources
-    // and run them through the existing, unmodified distribution algorithm —
-    // see build-combined-solar-battery.ts for why this keeps single-source
-    // configs byte-for-byte unchanged and is exact whenever at most one
-    // battery is active. The per-source toHome/toGrid values are then
-    // re-derived below via proportional attribution.
+    // solar2/battery2 are purely additive, satellite-only sources now (see
+    // the "3 bubbles" layout in solar.ts/battery.ts): they never get their
+    // own flow line to home/grid — there's no electrically meaningful way
+    // to say which of two PV strings or batteries fed which destination
+    // once combined on the same bus. Instead their own readings are folded
+    // into the *one* solar/battery node's totals below, before that node
+    // runs through the existing, unmodified distribution algorithm — for a
+    // single-source config (solar2/battery2 unconfigured) this is exactly
+    // byte-for-byte what ran before, see build-combined-solar-battery.ts.
+    // Snapshot solar1/battery1's own identity+reading before their "solar"/
+    // "battery" objects get overwritten with combined values below — the
+    // satellite bubbles (see solar.ts/battery.ts) need solar1/battery1's
+    // own numbers just like solar2/battery2 already have theirs.
+    const solar1Own = {
+      name: solar.name,
+      icon: solar.icon,
+      entity: solar.entity,
+      total: solar.state.total,
+      tap_action: solar.tap_action,
+      hold_action: solar.hold_action,
+      double_tap_action: solar.double_tap_action,
+    };
+    const battery1Own = {
+      name: battery.name,
+      icon: battery.icon,
+      entity: battery.entity,
+      mainEntity: battery.mainEntity,
+      toBattery: battery.state.toBattery,
+      fromBattery: battery.state.fromBattery,
+      state_of_charge: battery.state_of_charge,
+      tap_action: battery.tap_action,
+      hold_action: battery.hold_action,
+      double_tap_action: battery.double_tap_action,
+    };
     const combinedSolarTotals = buildCombinedSolar(
-      { has: solar.has, total: solar.state.total },
+      { has: solar.has, total: solar1Own.total },
       { has: solar2.has, total: solar2.state.total }
     );
     const combinedBatteryTotals = buildCombinedBattery(
-      {
-        has: !!battery.has,
-        toBattery: battery.state.toBattery,
-        fromBattery: battery.state.fromBattery,
-      },
+      { has: !!battery.has, toBattery: battery1Own.toBattery, fromBattery: battery1Own.fromBattery },
       {
         has: !!battery2.has,
         toBattery: battery2.state.toBattery,
         fromBattery: battery2.state.fromBattery,
       }
     );
-    const combinedSolar = {
-      has: combinedSolarTotals.has,
-      state: {
-        total: combinedSolarTotals.total,
-        toHome: initialNumericState,
-        toGrid: initialNumericState,
-        toBattery: initialNumericState,
-      },
-    };
-    const combinedBattery = {
-      has: combinedBatteryTotals.has,
-      state: {
-        toBattery: combinedBatteryTotals.toBattery,
-        fromBattery: combinedBatteryTotals.fromBattery,
-        toGrid: 0,
-        toHome: 0,
-      },
-    };
+    solar.has = combinedSolarTotals.has;
+    solar.state.total = combinedSolarTotals.total;
+    battery.has = combinedBatteryTotals.has;
+    battery.state.toBattery = combinedBatteryTotals.toBattery;
+    battery.state.fromBattery = combinedBatteryTotals.fromBattery;
+    if (solar2.has) {
+      solar.name = this.hass.localize(
+        "ui.panel.lovelace.cards.energy.energy_distribution.solar"
+      );
+    }
+    if (battery2.has) {
+      battery.name = this.hass.localize(
+        "ui.panel.lovelace.cards.energy.energy_distribution.battery"
+      );
+    }
     computePowerDistributionAfterSolarAndBattery({
       entities: {
         grid: entities.grid,
@@ -982,64 +985,34 @@ export class PowerFlowCardPlus extends LitElement {
         fossil_fuel_percentage: entities.fossil_fuel_percentage,
       },
       grid,
-      solar: combinedSolar,
-      battery: combinedBattery,
+      solar,
+      battery,
       nonFossil,
       getEntityStateWatts: (entityId) => getEntityStateWatts(this.hass, entityId),
       getEntityState: (entityId) => getEntityState(this.hass, entityId),
     });
-    // Attribute the combined flows back to each source. Solar's toBattery
-    // stays the shared/generic charging value (no per-PV attribution — see
-    // solar2-to-home.ts module doc); toHome/toGrid are split proportionally.
-    const solarShares = computeSolarShares(
-      combinedSolar.state,
-      solar.state.total ?? 0,
-      solar2.state.total ?? 0
-    );
-    solar.state.toHome = solarShares.source1.toHome;
-    solar.state.toGrid = solarShares.source1.toGrid;
-    solar.state.toBattery = combinedSolar.state.toBattery;
-    solar2.state.toHome = solarShares.source2.toHome;
-    solar2.state.toGrid = solarShares.source2.toGrid;
-    solar2.state.toBattery = 0;
-    const batteryShares = computeBatteryShares(
-      combinedBattery.state,
-      battery.state.fromBattery ?? 0,
-      battery2.state.fromBattery ?? 0
-    );
-    battery.state.toHome = batteryShares.source1.toHome;
-    battery.state.toGrid = batteryShares.source1.toGrid;
-    battery2.state.toHome = batteryShares.source2.toHome;
-    battery2.state.toGrid = batteryShares.source2.toGrid;
     if (!grid.has) {
       grid.state.fromGrid = 0;
       grid.state.toGrid = 0;
       grid.state.toHome = 0;
       grid.state.toBattery = 0;
       solar.state.toGrid = 0;
-      solar2.state.toGrid = 0;
       battery.state.toGrid = 0;
-      battery2.state.toGrid = 0;
       nonFossil.has = false;
       nonFossil.hasPercentage = false;
       nonFossil.state.power = 0;
     }
     const totalIndividualConsumption =
       individualObjs?.reduce((a, b) => a + (b.has ? b.state || 0 : 0), 0) || 0;
-    // Combined battery/solar shares for the home ring: both PV systems count
-    // as one "solar" slice, both batteries as one "battery" slice (see plan
-    // — giving each source its own ring slice is out of scope for now).
-    const combinedBatteryToHome = (battery.state.toHome ?? 0) + (battery2.state.toHome ?? 0);
-    const combinedSolarToHome = (solar.state.toHome ?? 0) + (solar2.state.toHome ?? 0);
     const totalHomeConsumption = Math.max(
-      (grid.state.toHome ?? 0) + combinedSolarToHome + combinedBatteryToHome,
+      (grid.state.toHome ?? 0) + (solar.state.toHome ?? 0) + (battery.state.toHome ?? 0),
       0
     );
-    const homeBatteryCircumference = combinedBatteryToHome
-      ? CIRCLE_CIRCUMFERENCE * (combinedBatteryToHome / totalHomeConsumption)
+    const homeBatteryCircumference = battery.state.toHome
+      ? CIRCLE_CIRCUMFERENCE * (battery.state.toHome / totalHomeConsumption)
       : 0;
-    const homeSolarCircumference = combinedSolarToHome
-      ? CIRCLE_CIRCUMFERENCE * (combinedSolarToHome / totalHomeConsumption)
+    const homeSolarCircumference = solar.state.toHome
+      ? CIRCLE_CIRCUMFERENCE * (solar.state.toHome / totalHomeConsumption)
       : 0;
     const homeNonFossilCircumference = nonFossil.state.power
       ? CIRCLE_CIRCUMFERENCE * (nonFossil.state.power / totalHomeConsumption)
@@ -1048,8 +1021,8 @@ export class PowerFlowCardPlus extends LitElement {
       CIRCLE_CIRCUMFERENCE *
       ((totalHomeConsumption -
         (nonFossil.state.power ?? 0) -
-        combinedBatteryToHome -
-        combinedSolarToHome) /
+        (battery.state.toHome ?? 0) -
+        (solar.state.toHome ?? 0)) /
         totalHomeConsumption);
     const homeUsageToDisplay =
       entities.home?.override_state && entities.home.entity
@@ -1093,11 +1066,7 @@ export class PowerFlowCardPlus extends LitElement {
       (solar.state.toBattery ?? 0) +
       (battery.state.toHome ?? 0) +
       (grid.state.toBattery ?? 0) +
-      (battery.state.toGrid ?? 0) +
-      (solar2.state.toHome ?? 0) +
-      (solar2.state.toGrid ?? 0) +
-      (battery2.state.toHome ?? 0) +
-      (battery2.state.toGrid ?? 0);
+      (battery.state.toGrid ?? 0);
     if (battery.state_of_charge.state === null) {
       battery.icon = "mdi:battery";
     } else if (battery.state_of_charge.state <= 72 && battery.state_of_charge.state > 44) {
@@ -1143,10 +1112,6 @@ export class PowerFlowCardPlus extends LitElement {
       solarToBattery: computeFlowRate(this._config, solar.state.toBattery ?? 0, totalLines),
       solarToGrid: computeFlowRate(this._config, solar.state.toGrid ?? 0, totalLines),
       solarToHome: computeFlowRate(this._config, solar.state.toHome ?? 0, totalLines),
-      solar2ToHome: computeFlowRate(this._config, solar2.state.toHome ?? 0, totalLines),
-      solar2ToGrid: computeFlowRate(this._config, solar2.state.toGrid ?? 0, totalLines),
-      battery2Grid: computeFlowRate(this._config, battery2.state.toGrid ?? 0, totalLines),
-      battery2ToHome: computeFlowRate(this._config, battery2.state.toHome ?? 0, totalLines),
       individual:
         individualObjs?.map((individual) =>
           computeFlowRate(this._config, individual.state ?? 0, totalIndividualConsumption)
@@ -1160,11 +1125,7 @@ export class PowerFlowCardPlus extends LitElement {
         | "gridToHome"
         | "solarToBattery"
         | "solarToGrid"
-        | "solarToHome"
-        | "solar2ToHome"
-        | "solar2ToGrid"
-        | "battery2Grid"
-        | "battery2ToHome";
+        | "solarToHome";
       const flowNames: AnimatedFlowName[] = [
         "batteryGrid",
         "batteryToHome",
@@ -1172,10 +1133,6 @@ export class PowerFlowCardPlus extends LitElement {
         "solarToBattery",
         "solarToGrid",
         "solarToHome",
-        "solar2ToHome",
-        "solar2ToGrid",
-        "battery2Grid",
-        "battery2ToHome",
       ];
       flowNames.forEach((flowName) => {
         const flowSVGElement = this[`${flowName}Flow`] as SVGSVGElement;
@@ -1221,7 +1178,6 @@ export class PowerFlowCardPlus extends LitElement {
     const templatesObj: TemplatesObj = {
       gridSecondary: this._templateResults.gridSecondary?.result,
       solarSecondary: this._templateResults.solarSecondary?.result,
-      solar2Secondary: this._templateResults.solar2Secondary?.result,
       homeSecondary: this._templateResults.homeSecondary?.result,
       nonFossilFuelSecondary: this._templateResults.nonFossilFuelSecondary?.result,
       individual:
@@ -1282,8 +1238,10 @@ export class PowerFlowCardPlus extends LitElement {
       grid,
       solar,
       solar2,
+      solar1Own,
       battery,
       battery2,
+      battery1Own,
       home,
       nonFossil,
       individualObjs: visibleIndividualObjects,
@@ -1307,7 +1265,6 @@ export class PowerFlowCardPlus extends LitElement {
     const templatesObj = {
       gridSecondary: entities.grid?.secondary_info?.template,
       solarSecondary: entities.solar?.secondary_info?.template,
-      solar2Secondary: entities.solar2?.secondary_info?.template,
       homeSecondary: entities.home?.secondary_info?.template,
       individualSecondary: entities.individual?.map(
         (individual) => individual.secondary_info?.template
@@ -1381,7 +1338,6 @@ export class PowerFlowCardPlus extends LitElement {
     const templatesObj = {
       gridSecondary: entities.grid?.secondary_info?.template,
       solarSecondary: entities.solar?.secondary_info?.template,
-      solar2Secondary: entities.solar2?.secondary_info?.template,
       homeSecondary: entities.home?.secondary_info?.template,
       individualSecondary: entities.individual?.map(
         (individual) => individual.secondary_info?.template

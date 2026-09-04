@@ -282,6 +282,121 @@ export const styles = css`
     transform: translateY(20px);
   }
 
+  /*
+   * Solar2/battery2 "satellite" bubbles: a second PV system/battery shows
+   * up as a small extra circle beside the main one, connected by a short
+   * straight line, rather than an independent flow line all the way to
+   * home/grid. Absolutely positioned so they never affect the main
+   * circle-container's own box size — the row's flex layout (and every
+   * flow-line coordinate calibrated against it) stays exactly as it was
+   * for single-source configs.
+   */
+  .circle-container.solar,
+  .circle-container.battery {
+    position: relative;
+  }
+  .satellite {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 54px;
+    pointer-events: auto;
+  }
+  .satellite-left {
+    right: calc(100% + 26px);
+  }
+  .satellite-right {
+    left: calc(100% + 26px);
+  }
+  .satellite-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    line-height: 11px;
+    cursor: var(--clickable-cursor);
+    position: relative;
+    overflow: hidden;
+    gap: 1px;
+  }
+  .satellite-circle > ha-ripple {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .satellite-circle ha-icon {
+    --mdc-icon-size: 16px;
+  }
+  .satellite-connector {
+    position: absolute;
+    top: 50%;
+    width: 26px;
+    height: 2px;
+  }
+  .satellite-connector-left {
+    right: 100%;
+  }
+  .satellite-connector-right {
+    left: 100%;
+  }
+  .satellite-label {
+    font-size: 10px;
+    max-width: 54px;
+    margin-top: 2px;
+    min-height: 0;
+    text-align: center;
+  }
+  .satellite-circle.solar,
+  .satellite-connector.solar {
+    border-color: var(--energy-solar-color);
+    background-color: var(--energy-solar-color);
+  }
+  .satellite-circle.solar ha-icon,
+  .satellite-circle.solar span {
+    color: var(--energy-solar-color);
+  }
+  .satellite-circle.solar2,
+  .satellite-connector.solar2 {
+    border-color: var(--energy-solar2-color);
+    background-color: var(--energy-solar2-color);
+  }
+  .satellite-circle.solar2 ha-icon,
+  .satellite-circle.solar2 span {
+    color: var(--energy-solar2-color);
+  }
+  .satellite-circle.battery,
+  .satellite-connector.battery {
+    border-color: var(--circle-battery-color);
+    background-color: var(--circle-battery-color);
+  }
+  .satellite-circle.battery ha-icon,
+  .satellite-circle.battery span {
+    color: var(--circle-battery-color);
+  }
+  .satellite-circle.battery2,
+  .satellite-connector.battery2 {
+    border-color: var(--circle-battery2-color);
+    background-color: var(--circle-battery2-color);
+  }
+  .satellite-circle.battery2 ha-icon,
+  .satellite-circle.battery2 span {
+    color: var(--circle-battery2-color);
+  }
+  /* connector line shouldn't paint over the circle borders */
+  .satellite-connector {
+    height: 2px;
+  }
+
   line,
   path {
     stroke: var(--disabled-text-color);

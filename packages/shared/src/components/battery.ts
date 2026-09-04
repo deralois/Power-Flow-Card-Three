@@ -6,19 +6,95 @@ import {
 import { displayValue } from "@flixlix-cards/shared/utils/display-value";
 import { html, nothing } from "lit";
 
+/**
+ * A small satellite bubble beside the main battery circle, showing one
+ * battery's own state of charge (or net power, if no SoC entity is
+ * configured), connected to the combined circle by a short straight line.
+ * Used for the "3 bubbles" layout when a second battery is configured (see
+ * power-flow-card-three.ts `battery1Own`/`battery2`).
+ */
+const satelliteElement = (
+  main: CardMainContext,
+  config: FlowCardPlusConfig,
+  {
+    data,
+    position,
+    colorClass,
+  }: {
+    data: {
+      name: string;
+      icon: string;
+      entity?: string | { consumption: string; production: string };
+      state_of_charge: { state: number | null; unit?: string; unit_white_space?: boolean; decimals?: number };
+      toBattery: number | null;
+      fromBattery: number | null;
+      tap_action?: any;
+      hold_action?: any;
+      double_tap_action?: any;
+    };
+    position: "left" | "right";
+    colorClass: string;
+  }
+) => {
+  const disableEntityClick = config.clickable_entities === false;
+  const netPower = (data.fromBattery ?? 0) - (data.toBattery ?? 0);
+  const displayText =
+    data.state_of_charge.state !== null
+      ? displayValue(main.hass, config, data.state_of_charge.state, {
+          unit: data.state_of_charge.unit ?? "%",
+          unitWhiteSpace: data.state_of_charge.unit_white_space,
+          decimals: data.state_of_charge.decimals,
+          accept_negative: true,
+        })
+      : displayValue(main.hass, config, netPower, { accept_negative: true });
+  const target =
+    typeof data.entity === "string" ? data.entity : (data.entity?.production ?? undefined);
+  return html`<div class="satellite satellite-${position}">
+    <div class="satellite-connector satellite-connector-${position} ${colorClass}"></div>
+    <div
+      class="satellite-circle ${colorClass} ${disableEntityClick ? "pointer-events-none" : ""}"
+      @click=${(e: MouseEvent) => {
+        main.onEntityClick(e, data, target);
+      }}
+      @dblclick=${(e: MouseEvent) => {
+        main.onEntityDoubleClick(e, data, target);
+      }}
+      @pointerdown=${(e: PointerEvent) => {
+        main.onEntityPointerDown(e, data, target);
+      }}
+      @pointerup=${(e: PointerEvent) => {
+        main.onEntityPointerUp(e);
+      }}
+      @pointercancel=${(e: PointerEvent) => {
+        main.onEntityPointerUp(e);
+      }}
+    >
+      <ha-ripple .disabled=${disableEntityClick}></ha-ripple>
+      <ha-icon .icon=${data.icon}></ha-icon>
+      <span>${displayText}</span>
+    </div>
+    <span class="label satellite-label">${data.name}</span>
+  </div>`;
+};
+
 export const batteryElement = (
   main: CardMainContext,
   config: FlowCardPlusConfig,
   {
     battery,
+    battery2,
+    battery1Own,
     entities,
   }: {
     battery: any;
+    battery2?: any;
+    battery1Own?: any;
     entities: ConfigEntities;
   }
 ) => {
   const disableEntityClick = config.clickable_entities === false;
-  return html`<div class="circle-container battery">
+  const showSatellites = !!battery2?.has;
+  return html`<div class="circle-container battery ${showSatellites ? "has-satellites" : ""}">
     <div
       class="circle ${disableEntityClick ? "pointer-events-none" : ""}"
       @click=${(e: MouseEvent) => {
@@ -230,5 +306,19 @@ export const batteryElement = (
         : nothing}
     </div>
     <span class="label">${battery.name}</span>
+    ${showSatellites
+      ? satelliteElement(main, config, {
+          data: battery1Own,
+          position: "left",
+          colorClass: "battery",
+        })
+      : nothing}
+    ${showSatellites
+      ? satelliteElement(main, config, {
+          data: battery2,
+          position: "right",
+          colorClass: "battery2",
+        })
+      : nothing}
   </div>`;
 };

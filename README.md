@@ -70,14 +70,23 @@ entities:
 Im UI-Editor erscheinen „Solar 2" und „Batterie 2" als eigene Unterseiten, sobald
 das Repo aktualisiert ist — keine Migration nötig, die Felder sind rein additiv.
 
-Beide zusätzlichen Quellen bekommen ein eigenes Icon mit eigenem Ladezustand/eigener
-Leistungsanzeige (direkt vom jeweiligen Sensor, keine Näherung). Für die Fluss-Pfeile
-zu Haus und Netz gilt: Da elektrisch nicht unterscheidbar ist, welche der beiden
-PV-Anlagen bzw. Batterien welchen Verbraucher konkret speist, werden die kombinierten
-Gesamtwerte proportional nach Erzeugungs- bzw. Entladeanteil auf die beiden Pfeile
-aufgeteilt — die Summe stimmt immer, die Aufteilung ist eine plausible Näherung. Der
-Ladefluss **zur** Batterie bleibt ein einzelner, gemeinsamer Pfeil (keine Unterscheidung,
-welche PV-Anlage welche Batterie lädt).
+### Darstellung: 3 Kreise statt 2 unabhängiger Flüsse
+
+Solar (und Batterie) werden bei konfiguriertem zweiten System als **drei Kreise**
+dargestellt: der mittlere, große Kreis an der bisherigen Position zeigt die
+**Summe** beider Quellen und ist über die normalen, unveränderten Fluss-Pfeile mit
+Haus/Netz/Batterie verbunden — für Configs ohne zweite Quelle ändert sich hier
+nichts. Links und rechts daneben erscheinen zwei kleinere Kreise für PV1/PV2 bzw.
+Batterie1/Batterie2 einzeln, jeweils mit kurzer gerader Linie zum mittleren Kreis
+verbunden.
+
+Diese Darstellung wurde bewusst so gewählt: eine unabhängige, lange Fluss-Linie für
+jede der beiden Quellen bis zu Haus/Netz stellte sich als nicht robust gegenüber
+unterschiedlichen Kartenbreiten/Home-Assistant-Themes heraus (getestet, verworfen).
+Da elektrisch ohnehin nicht unterscheidbar ist, welche der beiden PV-Anlagen bzw.
+Batterien welchen Verbraucher konkret speist, ist die Summe im mittleren Kreis die
+elektrisch korrekte Größe; die beiden Satelliten zeigen unverändert den echten
+Sensorwert der jeweiligen Einzelquelle.
 
 ## Struktur
 

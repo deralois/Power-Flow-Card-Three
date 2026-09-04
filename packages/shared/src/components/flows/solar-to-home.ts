@@ -26,7 +26,7 @@ const solarToHomeDot = (
 
 export const flowSolarToHome = (
   config: FlowCardPlusConfig,
-  { battery, battery2, grid, individual, solar, newDur }: Flows
+  { battery, grid, individual, solar, newDur }: Flows
 ) => {
   const shouldShow =
     solar.has && showLine(config, solar.state.toHome || 0) && !config.entities.home?.hide;
@@ -34,7 +34,7 @@ export const flowSolarToHome = (
 
   return html`<div
     class="lines ${classMap({
-      high: battery.has || battery2.has || checkHasBottomIndividual(individual),
+      high: battery.has || checkHasBottomIndividual(individual),
       "individual1-individual2": !battery.has && individual.every((i) => i?.has),
       "multi-individual": checkHasRightIndividual(individual),
     })}"
