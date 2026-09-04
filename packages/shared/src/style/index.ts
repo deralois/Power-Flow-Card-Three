@@ -284,36 +284,66 @@ export const styles = css`
 
   /*
    * Solar2/battery2 "satellite" bubbles: a second PV system/battery shows
-   * up as a small extra circle beside the main one, connected by a short
+   * up as a small extra circle near the main one, connected by a short
    * straight line, rather than an independent flow line all the way to
    * home/grid. Absolutely positioned so they never affect the main
    * circle-container's own box size — the row's flex layout (and every
    * flow-line coordinate calibrated against it) stays exactly as it was
    * for single-source configs.
+   *
+   * Positioned ABOVE the circle for solar (row 1, topmost — nothing above
+   * it to collide with) and BELOW it for battery (row 3, bottommost —
+   * nothing below it either), rather than to the left/right: on narrow
+   * (phone-width) cards the horizontal gap between adjacent row slots can
+   * shrink to exactly 0px, so anything placed sideways WILL overlap the
+   * neighboring circle (individual devices, grid, home, ...) — there is no
+   * satellite size small enough to avoid that. Vertical space above/below
+   * the outermost rows doesn't have that constraint.
    */
   .circle-container.solar,
   .circle-container.battery {
     position: relative;
   }
+  /*
+   * Guaranteed clearance for the satellites above/below the card's own
+   * content, independent of however much padding ha-card itself happens to
+   * have in a given Home Assistant theme — without this, ha-card's own
+   * "overflow: hidden" could clip the satellites right at the card edge.
+   * Deliberately added to ha-card itself, not .card-content: .card-content
+   * is "position: relative" and every flow line is positioned absolute
+   * against ITS padding edge (e.g. "bottom: 0") — padding .card-content
+   * directly would shift that whole reference point and re-break the
+   * original six lines' alignment with the actual row content.
+   */
+  ha-card.has-solar-satellites {
+    padding-top: 48px;
+  }
+  ha-card.has-battery-satellites {
+    padding-bottom: 48px;
+  }
   .satellite {
     position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 54px;
+    width: 36px;
     pointer-events: auto;
   }
+  .circle-container.solar .satellite {
+    bottom: calc(100% + 6px);
+  }
+  .circle-container.battery .satellite {
+    top: calc(100% + 6px);
+  }
   .satellite-left {
-    right: calc(100% + 26px);
+    left: -14px;
   }
   .satellite-right {
-    left: calc(100% + 26px);
+    right: -14px;
   }
   .satellite-circle {
-    width: 44px;
-    height: 44px;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
     border: 2px solid;
     box-sizing: border-box;
@@ -321,12 +351,12 @@ export const styles = css`
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    font-size: 10px;
-    line-height: 11px;
+    font-size: 7px;
+    line-height: 8px;
     cursor: var(--clickable-cursor);
     position: relative;
     overflow: hidden;
-    gap: 1px;
+    gap: 0px;
   }
   .satellite-circle > ha-ripple {
     position: absolute;
@@ -335,66 +365,73 @@ export const styles = css`
     pointer-events: none;
   }
   .satellite-circle ha-icon {
-    --mdc-icon-size: 16px;
+    --mdc-icon-size: 11px;
   }
   .satellite-connector {
     position: absolute;
-    top: 50%;
-    width: 26px;
-    height: 2px;
+    left: 50%;
+    width: 2px;
+    height: 6px;
+    transform: translateX(-50%);
   }
-  .satellite-connector-left {
-    right: 100%;
+  .circle-container.solar .satellite-connector {
+    bottom: -6px;
   }
-  .satellite-connector-right {
-    left: 100%;
+  .circle-container.battery .satellite-connector {
+    top: -6px;
   }
   .satellite-label {
-    font-size: 10px;
-    max-width: 54px;
-    margin-top: 2px;
+    font-size: 8px;
+    max-width: 40px;
+    margin-top: 1px;
     min-height: 0;
     text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  .satellite-circle.solar,
-  .satellite-connector.solar {
+  .satellite-circle {
+    background-color: var(--card-background-color, #111);
+  }
+  .satellite-circle.solar {
     border-color: var(--energy-solar-color);
-    background-color: var(--energy-solar-color);
   }
   .satellite-circle.solar ha-icon,
   .satellite-circle.solar span {
     color: var(--energy-solar-color);
   }
-  .satellite-circle.solar2,
-  .satellite-connector.solar2 {
+  .satellite-connector.solar {
+    background-color: var(--energy-solar-color);
+  }
+  .satellite-circle.solar2 {
     border-color: var(--energy-solar2-color);
-    background-color: var(--energy-solar2-color);
   }
   .satellite-circle.solar2 ha-icon,
   .satellite-circle.solar2 span {
     color: var(--energy-solar2-color);
   }
-  .satellite-circle.battery,
-  .satellite-connector.battery {
+  .satellite-connector.solar2 {
+    background-color: var(--energy-solar2-color);
+  }
+  .satellite-circle.battery {
     border-color: var(--circle-battery-color);
-    background-color: var(--circle-battery-color);
   }
   .satellite-circle.battery ha-icon,
   .satellite-circle.battery span {
     color: var(--circle-battery-color);
   }
-  .satellite-circle.battery2,
-  .satellite-connector.battery2 {
+  .satellite-connector.battery {
+    background-color: var(--circle-battery-color);
+  }
+  .satellite-circle.battery2 {
     border-color: var(--circle-battery2-color);
-    background-color: var(--circle-battery2-color);
   }
   .satellite-circle.battery2 ha-icon,
   .satellite-circle.battery2 span {
     color: var(--circle-battery2-color);
   }
-  /* connector line shouldn't paint over the circle borders */
-  .satellite-connector {
-    height: 2px;
+  .satellite-connector.battery2 {
+    background-color: var(--circle-battery2-color);
   }
 
   line,

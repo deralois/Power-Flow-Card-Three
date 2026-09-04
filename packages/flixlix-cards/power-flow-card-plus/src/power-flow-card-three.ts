@@ -411,7 +411,9 @@ export class PowerFlowCardPlus extends LitElement {
     return html`
       <ha-card
         .header=${this._config.title}
-        class=${this._config.full_size ? "full-size" : ""}
+        class="${this._config.full_size ? "full-size" : ""} ${solar2.has
+          ? "has-solar-satellites"
+          : ""} ${battery2.has ? "has-battery-satellites" : ""}"
         style=${this._config.style_ha_card ? this._config.style_ha_card : ""}
       >
         <div
