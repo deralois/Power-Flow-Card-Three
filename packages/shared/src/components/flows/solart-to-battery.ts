@@ -28,14 +28,14 @@ type FlowSolarToBatteryFlows = Pick<Flows, Exclude<keyof Flows, "grid">>;
 
 export const flowSolarToBattery = (
   config: FlowCardPlusConfig,
-  { battery, individual, solar, newDur }: FlowSolarToBatteryFlows
+  { battery, battery2, individual, solar, newDur }: FlowSolarToBatteryFlows
 ) => {
   const shouldShow = battery.has && solar.has && showLine(config, solar.state.toBattery || 0);
   if (!shouldShow) return nothing;
 
   return html`<div
     class="lines ${classMap({
-      high: battery.has || checkHasBottomIndividual(individual),
+      high: battery.has || battery2.has || checkHasBottomIndividual(individual),
       "individual1-individual2": !battery.has && individual.every((i) => i?.has),
       "multi-individual": checkHasRightIndividual(individual),
     })}"

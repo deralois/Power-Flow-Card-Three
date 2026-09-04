@@ -1,8 +1,13 @@
 import { type FlowCardPlusConfig } from "@flixlix-cards/shared/types";
 import { checkShouldShowDots } from "@flixlix-cards/shared/utils/check-should-show-dots";
+import {
+  checkHasBottomIndividual,
+  checkHasRightIndividual,
+} from "@flixlix-cards/shared/utils/compute-individual-position";
 import { showLine } from "@flixlix-cards/shared/utils/show-line";
 import { styleLine } from "@flixlix-cards/shared/utils/style-line";
 import { html, nothing, svg } from "lit";
+import { classMap } from "lit/directives/class-map.js";
 import { type Flows } from "./index";
 
 const solar2ToGridDot = (
@@ -19,13 +24,21 @@ const solar2ToGridDot = (
     </circle>`;
 };
 
-/** Solar 2's own flow line to grid. See `flowSolar2ToHome` for layout context. */
-export const flowSolar2ToGrid = (config: FlowCardPlusConfig, { grid, solar2, newDur }: Flows) => {
+/** Solar 2's own flow line to grid. See flowSolar2ToHome for layout context. */
+export const flowSolar2ToGrid = (
+  config: FlowCardPlusConfig,
+  { battery, battery2, grid, individual, solar2, newDur }: Flows
+) => {
   const shouldShow =
     grid.has && grid.hasReturnToGrid && solar2.has && showLine(config, solar2.state.toGrid || 0);
   if (!shouldShow) return nothing;
 
-  return html`<div class="lines-solar2">
+  return html`<div
+    class="lines ${classMap({
+      high: battery.has || battery2.has || checkHasBottomIndividual(individual),
+      "multi-individual": checkHasRightIndividual(individual),
+    })}"
+  >
     <svg
       viewBox="0 0 100 100"
       xmlns="http://www.w3.org/2000/svg"
@@ -35,7 +48,7 @@ export const flowSolar2ToGrid = (config: FlowCardPlusConfig, { grid, solar2, new
       <path
         id="solar2-return"
         class="return ${styleLine(solar2.state.toGrid || 0, config)}"
-        d="M48.6,3.8 C48.6,20.8 -19.6,20.8 -19.6,37.9 C-19.6,58.7 -5.6,58.7 -5.6,79.5"
+        d="M9.5,0 C9.5,25 -3.8,25 -3.8,60.8"
         vector-effect="non-scaling-stroke"
       ></path>
       ${solar2ToGridDot(config, solar2, newDur)}

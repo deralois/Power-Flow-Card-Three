@@ -98,38 +98,6 @@ export const styles = css`
     margin: 0 auto;
   }
 
-  /*
-   * Wraps the original 3 rows + their flow-line overlay. The overlay's
-   * ".lines" is bottom-anchored to the nearest "position: relative"
-   * ancestor — without this wrapper, adding the battery2 row below would
-   * grow .card-content from the bottom and silently shift every existing
-   * flow line up. Solar2's row above doesn't need this (it only grows
-   * .card-content from the top, which the bottom-anchored lines don't
-   * care about).
-   */
-  .core-flow-rows {
-    position: relative;
-  }
-
-  .row-solar2,
-  .row-battery2 {
-    margin-bottom: 8px;
-    margin-top: 8px;
-  }
-  /*
-   * Compound selector for higher specificity than the plain ".row" rule
-   * below (equal-specificity same-class rules resolve by source order, and
-   * this one needs to win regardless of where ".row" ends up after future
-   * edits). Centering — rather than trying to replicate row 1/3's dynamic
-   * space-between slot math from a row with a different item count — lines
-   * solar2/battery2 up with solar/battery in the common case, where slot 2
-   * of the primary row is itself horizontally centered.
-   */
-  .row.row-solar2,
-  .row.row-battery2 {
-    justify-content: center;
-  }
-
   .circle {
     width: 80px;
     height: 80px;
@@ -203,52 +171,6 @@ export const styles = css`
     height: 156px;
   }
 
-  /*
-   * Solar2/battery2 flow lines live outside .core-flow-rows (their rows are
-   * siblings above/below it) but need to visually reach into it, down to
-   * home. Same left/width as the primary ".lines" box (same column as
-   * solar/battery, see the row-solar2/row-battery2 leading spacer in
-   * render()) — only taller, to cover the extra row. preserveAspectRatio
-   * "none" on these SVGs (unlike the original six, which use "slice") keeps
-   * the horizontal scale identical to the primary lines while letting the
-   * extra height stretch independently, instead of being cropped.
-   */
-  .lines-solar2 {
-    position: absolute;
-    bottom: 100px;
-    left: var(--size-circle-entity);
-    width: 100%;
-    height: 280px;
-    display: flex;
-    justify-content: flex-start;
-    padding: 0 16px 16px;
-    box-sizing: border-box;
-    pointer-events: none;
-  }
-  .lines-solar2 svg {
-    width: var(--lines-svg-not-flat-width);
-    height: 100%;
-    max-width: 340px;
-    position: relative;
-  }
-  .lines-battery2 {
-    position: absolute;
-    top: 80px;
-    left: var(--size-circle-entity);
-    width: 100%;
-    height: 300px;
-    display: flex;
-    justify-content: flex-start;
-    padding: 0 16px 16px;
-    box-sizing: border-box;
-    pointer-events: none;
-  }
-  .lines-battery2 svg {
-    width: var(--lines-svg-not-flat-width);
-    height: 100%;
-    max-width: 340px;
-    position: relative;
-  }
   .lines svg {
     width: var(--lines-svg-flat-width);
     height: 100%;

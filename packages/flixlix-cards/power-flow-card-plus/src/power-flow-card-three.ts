@@ -424,122 +424,117 @@ export class PowerFlowCardPlus extends LitElement {
           id="power-flow-card-three"
           style=${this._config.style_card_content ? this._config.style_card_content : ""}
         >
-          ${solar2.has
-            ? html`<div class="row row-solar2">
-                ${solar2Element(this, this._config, {
+          ${solar.has ||
+          solar2.has ||
+          individualObjs?.some((individual) => individual?.has) ||
+          nonFossil.hasPercentage
+            ? html`<div class="row">
+                ${nonFossilElement(this, this._config, {
                   entities,
-                  solar2,
+                  grid,
+                  newDur,
+                  nonFossil,
                   templatesObj,
                 })}
+                ${solar2.has
+                  ? solar2Element(this, this._config, {
+                      entities,
+                      solar2,
+                      templatesObj,
+                    })
+                  : nothing}
+                ${solar.has
+                  ? solarElement(this, this._config, {
+                      entities,
+                      solar,
+                      templatesObj,
+                    })
+                  : individualObjs?.some((individual) => individual?.has)
+                    ? spacer
+                    : nothing}
+                ${individualFieldLeftTop
+                  ? individualLeftTopElement(this, this._config, {
+                      individualObj: individualFieldLeftTop,
+                      displayState: getIndividualDisplayState(individualFieldLeftTop),
+                      newDur,
+                      templatesObj,
+                    })
+                  : spacer}
+                ${checkHasRightIndividual(individualObjs)
+                  ? individualRightTopElement(this, this._config, {
+                      displayState: getIndividualDisplayState(individualFieldRightTop),
+                      individualObj: individualFieldRightTop,
+                      newDur,
+                      templatesObj,
+                      battery,
+                      individualObjs,
+                    })
+                  : nothing}
               </div>`
             : nothing}
-          <div class="core-flow-rows">
-            ${solar.has ||
-            individualObjs?.some((individual) => individual?.has) ||
-            nonFossil.hasPercentage
-              ? html`<div class="row">
-                  ${nonFossilElement(this, this._config, {
-                    entities,
-                    grid,
-                    newDur,
-                    nonFossil,
-                    templatesObj,
-                  })}
-                  ${solar.has
-                    ? solarElement(this, this._config, {
-                        entities,
-                        solar,
-                        templatesObj,
-                      })
-                    : individualObjs?.some((individual) => individual?.has)
-                      ? spacer
-                      : nothing}
-                  ${individualFieldLeftTop
-                    ? individualLeftTopElement(this, this._config, {
-                        individualObj: individualFieldLeftTop,
-                        displayState: getIndividualDisplayState(individualFieldLeftTop),
-                        newDur,
-                        templatesObj,
-                      })
-                    : spacer}
-                  ${checkHasRightIndividual(individualObjs)
-                    ? individualRightTopElement(this, this._config, {
-                        displayState: getIndividualDisplayState(individualFieldRightTop),
-                        individualObj: individualFieldRightTop,
-                        newDur,
-                        templatesObj,
-                        battery,
-                        individualObjs,
-                      })
-                    : nothing}
-                </div>`
-              : nothing}
-            <div class="row">
-              ${grid.has
-                ? gridElement(this, this._config, {
-                    entities,
-                    grid,
-                    templatesObj,
-                  })
-                : spacer}
-              ${spacer}
-              ${!entities.home?.hide
-                ? homeElement(this, this._config, {
-                    CIRCLE_CIRCUMFERENCE,
-                    entities,
-                    grid,
-                    home,
-                    homeBatteryCircumference,
-                    homeGridCircumference,
-                    homeNonFossilCircumference,
-                    homeSolarCircumference,
-                    newDur,
-                    templatesObj,
-                    homeUsageToDisplay,
-                    individual: individualObjs,
-                  })
-                : spacer}
-              ${checkHasRightIndividual(individualObjs) ? spacer : nothing}
-            </div>
-            ${battery.has || checkHasBottomIndividual(individualObjs)
-              ? html`<div class="row">
-                  ${spacer}
-                  ${battery.has
-                    ? batteryElement(this, this._config, { battery, entities })
-                    : spacer}
-                  ${individualFieldLeftBottom
-                    ? individualLeftBottomElement(this, this._config, {
-                        displayState: getIndividualDisplayState(individualFieldLeftBottom),
-                        individualObj: individualFieldLeftBottom,
-                        newDur,
-                        templatesObj,
-                      })
-                    : spacer}
-                  ${checkHasRightIndividual(individualObjs)
-                    ? individualRightBottomElement(this, this._config, {
-                        displayState: getIndividualDisplayState(individualFieldRightBottom),
-                        individualObj: individualFieldRightBottom,
-                        newDur,
-                        templatesObj,
-                      })
-                    : nothing}
-                </div>`
+          <div class="row">
+            ${grid.has
+              ? gridElement(this, this._config, {
+                  entities,
+                  grid,
+                  templatesObj,
+                })
               : spacer}
-            ${flowElement(this._config, {
-              battery,
-              battery2,
-              grid,
-              individual: individualObjs,
-              newDur,
-              solar,
-              solar2,
-            })}
+            ${spacer}
+            ${!entities.home?.hide
+              ? homeElement(this, this._config, {
+                  CIRCLE_CIRCUMFERENCE,
+                  entities,
+                  grid,
+                  home,
+                  homeBatteryCircumference,
+                  homeGridCircumference,
+                  homeNonFossilCircumference,
+                  homeSolarCircumference,
+                  newDur,
+                  templatesObj,
+                  homeUsageToDisplay,
+                  individual: individualObjs,
+                })
+              : spacer}
+            ${checkHasRightIndividual(individualObjs) ? spacer : nothing}
           </div>
-          ${battery2.has
-            ? html`<div class="row row-battery2">
-                ${battery2Element(this, this._config, { battery2, entities })}
+          ${battery.has || battery2.has || checkHasBottomIndividual(individualObjs)
+            ? html`<div class="row">
+                ${spacer}
+                ${battery2.has
+                  ? battery2Element(this, this._config, { battery2, entities })
+                  : nothing}
+                ${battery.has
+                  ? batteryElement(this, this._config, { battery, entities })
+                  : spacer}
+                ${individualFieldLeftBottom
+                  ? individualLeftBottomElement(this, this._config, {
+                      displayState: getIndividualDisplayState(individualFieldLeftBottom),
+                      individualObj: individualFieldLeftBottom,
+                      newDur,
+                      templatesObj,
+                    })
+                  : spacer}
+                ${checkHasRightIndividual(individualObjs)
+                  ? individualRightBottomElement(this, this._config, {
+                      displayState: getIndividualDisplayState(individualFieldRightBottom),
+                      individualObj: individualFieldRightBottom,
+                      newDur,
+                      templatesObj,
+                    })
+                  : nothing}
               </div>`
-            : nothing}
+            : spacer}
+          ${flowElement(this._config, {
+            battery,
+            battery2,
+            grid,
+            individual: individualObjs,
+            newDur,
+            solar,
+            solar2,
+          })}
         </div>
         ${dashboardLinkElement(this._config, this.hass)}
       </ha-card>

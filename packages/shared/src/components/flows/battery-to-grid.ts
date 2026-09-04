@@ -50,7 +50,7 @@ type FlowBatteryToGridFlows = Pick<Flows, Exclude<keyof Flows, "solar">>;
 
 export const flowBatteryToGrid = (
   config: FlowCardPlusConfig,
-  { battery, grid, individual, newDur }: FlowBatteryToGridFlows
+  { battery, battery2, grid, individual, newDur }: FlowBatteryToGridFlows
 ) => {
   const shouldShow =
     grid.has &&
@@ -60,7 +60,7 @@ export const flowBatteryToGrid = (
 
   return html`<div
     class="lines ${classMap({
-      high: battery.has || checkHasBottomIndividual(individual),
+      high: battery.has || battery2.has || checkHasBottomIndividual(individual),
       "individual1-individual2": !battery.has && individual.every((i) => i?.has),
       "multi-individual": checkHasRightIndividual(individual),
     })}"
