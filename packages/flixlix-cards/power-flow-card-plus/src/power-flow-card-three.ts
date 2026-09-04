@@ -935,7 +935,7 @@ export class PowerFlowCardPlus extends LitElement {
       name: solar.name,
       icon: solar.icon,
       entity: solar.entity,
-      total: solar.state.total,
+      state: { total: solar.state.total },
       tap_action: solar.tap_action,
       hold_action: solar.hold_action,
       double_tap_action: solar.double_tap_action,
@@ -945,19 +945,22 @@ export class PowerFlowCardPlus extends LitElement {
       icon: battery.icon,
       entity: battery.entity,
       mainEntity: battery.mainEntity,
-      toBattery: battery.state.toBattery,
-      fromBattery: battery.state.fromBattery,
+      state: { toBattery: battery.state.toBattery, fromBattery: battery.state.fromBattery },
       state_of_charge: battery.state_of_charge,
       tap_action: battery.tap_action,
       hold_action: battery.hold_action,
       double_tap_action: battery.double_tap_action,
     };
     const combinedSolarTotals = buildCombinedSolar(
-      { has: solar.has, total: solar1Own.total },
+      { has: solar.has, total: solar1Own.state.total },
       { has: solar2.has, total: solar2.state.total }
     );
     const combinedBatteryTotals = buildCombinedBattery(
-      { has: !!battery.has, toBattery: battery1Own.toBattery, fromBattery: battery1Own.fromBattery },
+      {
+        has: !!battery.has,
+        toBattery: battery1Own.state.toBattery,
+        fromBattery: battery1Own.state.fromBattery,
+      },
       {
         has: !!battery2.has,
         toBattery: battery2.state.toBattery,

@@ -28,7 +28,7 @@ const satelliteElement = (
       name: string;
       icon: string;
       entity?: string;
-      total: number | null;
+      state: { total: number | null };
       tap_action?: any;
       hold_action?: any;
       double_tap_action?: any;
@@ -60,7 +60,7 @@ const satelliteElement = (
     >
       <ha-ripple .disabled=${disableEntityClick}></ha-ripple>
       <ha-icon .icon=${data.icon}></ha-icon>
-      <span>${displayValue(main.hass, config, data.total, {})}</span>
+      <span>${displayValue(main.hass, config, data.state.total, {})}</span>
     </div>
     <span class="label satellite-label">${data.name}</span>
   </div>`;

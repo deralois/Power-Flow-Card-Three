@@ -331,6 +331,16 @@ export const styles = css`
   }
   .circle-container.solar .satellite {
     bottom: calc(100% + 6px);
+    /*
+     * .satellite's flex content is [circle, label] in that order, so with
+     * the default column direction the label ends up BELOW the circle —
+     * i.e. physically between the small circle and the main one above it,
+     * which stretched the connector line across empty space instead of
+     * bridging an actual gap. Reversing puts the label above the circle
+     * instead, so the circle (and the connector's "bottom: -Npx" below it)
+     * sits directly adjacent to the main circle.
+     */
+    flex-direction: column-reverse;
   }
   .circle-container.battery .satellite {
     top: calc(100% + 6px);
@@ -366,6 +376,30 @@ export const styles = css`
   }
   .satellite-circle ha-icon {
     --mdc-icon-size: 11px;
+  }
+  /*
+   * Battery satellites skip the icon entirely (no room for icon + 2 lines
+   * of text in a 30px circle) and instead show state of charge on top,
+   * charge/discharge power on the bottom line — green while charging, red
+   * while discharging, matching the universal battery-indicator convention
+   * rather than this card's own purple/teal in/out theme colors.
+   */
+  .satellite-circle-battery {
+    gap: 1px;
+  }
+  .satellite-soc {
+    font-size: 7px;
+    line-height: 7px;
+  }
+  .satellite-power {
+    font-size: 6px;
+    line-height: 6px;
+  }
+  .satellite-power.charging {
+    color: var(--satellite-charging-color, #4caf50);
+  }
+  .satellite-power.discharging {
+    color: var(--satellite-discharging-color, #f44336);
   }
   .satellite-connector {
     position: absolute;

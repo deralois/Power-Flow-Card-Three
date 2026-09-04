@@ -26,8 +26,7 @@ const satelliteElement = (
       icon: string;
       entity?: string | { consumption: string; production: string };
       state_of_charge: { state: number | null; unit?: string; unit_white_space?: boolean; decimals?: number };
-      toBattery: number | null;
-      fromBattery: number | null;
+      state: { toBattery: number | null; fromBattery: number | null };
       tap_action?: any;
       hold_action?: any;
       double_tap_action?: any;
@@ -37,8 +36,7 @@ const satelliteElement = (
   }
 ) => {
   const disableEntityClick = config.clickable_entities === false;
-  const netPower = (data.fromBattery ?? 0) - (data.toBattery ?? 0);
-  const displayText =
+  const socText =
     data.state_of_charge.state !== null
       ? displayValue(main.hass, config, data.state_of_charge.state, {
           unit: data.state_of_charge.unit ?? "%",
@@ -46,13 +44,20 @@ const satelliteElement = (
           decimals: data.state_of_charge.decimals,
           accept_negative: true,
         })
-      : displayValue(main.hass, config, netPower, { accept_negative: true });
+      : null;
+  const isCharging = (data.state.toBattery ?? 0) > 0;
+  const isDischarging = (data.state.fromBattery ?? 0) > 0;
+  const powerText = isCharging
+    ? displayValue(main.hass, config, data.state.toBattery, {})
+    : displayValue(main.hass, config, data.state.fromBattery ?? 0, {});
   const target =
     typeof data.entity === "string" ? data.entity : (data.entity?.production ?? undefined);
   return html`<div class="satellite satellite-${position}">
     <div class="satellite-connector satellite-connector-${position} ${colorClass}"></div>
     <div
-      class="satellite-circle ${colorClass} ${disableEntityClick ? "pointer-events-none" : ""}"
+      class="satellite-circle satellite-circle-battery ${colorClass} ${disableEntityClick
+        ? "pointer-events-none"
+        : ""}"
       @click=${(e: MouseEvent) => {
         main.onEntityClick(e, data, target);
       }}
@@ -70,8 +75,12 @@ const satelliteElement = (
       }}
     >
       <ha-ripple .disabled=${disableEntityClick}></ha-ripple>
-      <ha-icon .icon=${data.icon}></ha-icon>
-      <span>${displayText}</span>
+      ${socText !== null ? html`<span class="satellite-soc">${socText}</span>` : nothing}
+      <span
+        class="satellite-power ${isCharging ? "charging" : isDischarging ? "discharging" : ""}"
+      >
+        ${powerText}
+      </span>
     </div>
     <span class="label satellite-label">${data.name}</span>
   </div>`;
