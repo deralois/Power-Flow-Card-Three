@@ -53,7 +53,6 @@ const satelliteElement = (
   const target =
     typeof data.entity === "string" ? data.entity : (data.entity?.production ?? undefined);
   return html`<div class="satellite satellite-${position}">
-    <div class="satellite-connector satellite-connector-${position} ${colorClass}"></div>
     <div
       class="satellite-circle satellite-circle-battery ${colorClass} ${disableEntityClick
         ? "pointer-events-none"

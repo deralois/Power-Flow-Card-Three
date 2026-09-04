@@ -284,12 +284,11 @@ export const styles = css`
 
   /*
    * Solar2/battery2 "satellite" bubbles: a second PV system/battery shows
-   * up as a small extra circle near the main one, connected by a short
-   * straight line, rather than an independent flow line all the way to
-   * home/grid. Absolutely positioned so they never affect the main
-   * circle-container's own box size — the row's flex layout (and every
-   * flow-line coordinate calibrated against it) stays exactly as it was
-   * for single-source configs.
+   * up as a small extra circle near the main one, rather than an
+   * independent flow line all the way to home/grid. Absolutely positioned
+   * so they never affect the main circle-container's own box size — the
+   * row's flex layout (and every flow-line coordinate calibrated against
+   * it) stays exactly as it was for single-source configs.
    *
    * Positioned ABOVE the circle for solar (row 1, topmost — nothing above
    * it to collide with) and BELOW it for battery (row 3, bottommost —
@@ -316,44 +315,38 @@ export const styles = css`
    * original six lines' alignment with the actual row content.
    */
   ha-card.has-solar-satellites {
-    padding-top: 48px;
+    padding-top: 56px;
   }
   ha-card.has-battery-satellites {
-    padding-bottom: 48px;
+    padding-bottom: 56px;
   }
   .satellite {
     position: absolute;
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 36px;
+    width: 46px;
     pointer-events: auto;
   }
   .circle-container.solar .satellite {
-    bottom: calc(100% + 6px);
-    /*
-     * .satellite's flex content is [circle, label] in that order, so with
-     * the default column direction the label ends up BELOW the circle —
-     * i.e. physically between the small circle and the main one above it,
-     * which stretched the connector line across empty space instead of
-     * bridging an actual gap. Reversing puts the label above the circle
-     * instead, so the circle (and the connector's "bottom: -Npx" below it)
-     * sits directly adjacent to the main circle.
-     */
+    bottom: calc(100% + 10px);
+    /* Label above the circle, matching the battery satellite's natural
+       [circle, label] stacking order, so the bubble sits closest to the
+       main circle in both directions. */
     flex-direction: column-reverse;
   }
   .circle-container.battery .satellite {
-    top: calc(100% + 6px);
+    top: calc(100% + 10px);
   }
   .satellite-left {
-    left: -14px;
+    left: -18px;
   }
   .satellite-right {
-    right: -14px;
+    right: -18px;
   }
   .satellite-circle {
-    width: 30px;
-    height: 30px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     border: 2px solid;
     box-sizing: border-box;
@@ -361,8 +354,8 @@ export const styles = css`
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    font-size: 7px;
-    line-height: 8px;
+    font-size: 8px;
+    line-height: 9px;
     cursor: var(--clickable-cursor);
     position: relative;
     overflow: hidden;
@@ -375,11 +368,11 @@ export const styles = css`
     pointer-events: none;
   }
   .satellite-circle ha-icon {
-    --mdc-icon-size: 11px;
+    --mdc-icon-size: 14px;
   }
   /*
    * Battery satellites skip the icon entirely (no room for icon + 2 lines
-   * of text in a 30px circle) and instead show state of charge on top,
+   * of text in the circle) and instead show state of charge on top,
    * charge/discharge power on the bottom line — green while charging, red
    * while discharging, matching the universal battery-indicator convention
    * rather than this card's own purple/teal in/out theme colors.
@@ -388,12 +381,12 @@ export const styles = css`
     gap: 1px;
   }
   .satellite-soc {
-    font-size: 7px;
-    line-height: 7px;
+    font-size: 8px;
+    line-height: 8px;
   }
   .satellite-power {
-    font-size: 6px;
-    line-height: 6px;
+    font-size: 7px;
+    line-height: 7px;
   }
   .satellite-power.charging {
     color: var(--satellite-charging-color, #4caf50);
@@ -401,22 +394,9 @@ export const styles = css`
   .satellite-power.discharging {
     color: var(--satellite-discharging-color, #f44336);
   }
-  .satellite-connector {
-    position: absolute;
-    left: 50%;
-    width: 2px;
-    height: 6px;
-    transform: translateX(-50%);
-  }
-  .circle-container.solar .satellite-connector {
-    bottom: -6px;
-  }
-  .circle-container.battery .satellite-connector {
-    top: -6px;
-  }
   .satellite-label {
     font-size: 8px;
-    max-width: 40px;
+    max-width: 50px;
     margin-top: 1px;
     min-height: 0;
     text-align: center;
@@ -434,18 +414,12 @@ export const styles = css`
   .satellite-circle.solar span {
     color: var(--energy-solar-color);
   }
-  .satellite-connector.solar {
-    background-color: var(--energy-solar-color);
-  }
   .satellite-circle.solar2 {
     border-color: var(--energy-solar2-color);
   }
   .satellite-circle.solar2 ha-icon,
   .satellite-circle.solar2 span {
     color: var(--energy-solar2-color);
-  }
-  .satellite-connector.solar2 {
-    background-color: var(--energy-solar2-color);
   }
   .satellite-circle.battery {
     border-color: var(--circle-battery-color);
@@ -454,18 +428,12 @@ export const styles = css`
   .satellite-circle.battery span {
     color: var(--circle-battery-color);
   }
-  .satellite-connector.battery {
-    background-color: var(--circle-battery-color);
-  }
   .satellite-circle.battery2 {
     border-color: var(--circle-battery2-color);
   }
   .satellite-circle.battery2 ha-icon,
   .satellite-circle.battery2 span {
     color: var(--circle-battery2-color);
-  }
-  .satellite-connector.battery2 {
-    background-color: var(--circle-battery2-color);
   }
 
   line,

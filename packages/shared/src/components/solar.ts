@@ -39,7 +39,6 @@ const satelliteElement = (
 ) => {
   const disableEntityClick = config.clickable_entities === false;
   return html`<div class="satellite satellite-${position}">
-    <div class="satellite-connector satellite-connector-${position} ${colorClass}"></div>
     <div
       class="satellite-circle ${colorClass} ${disableEntityClick ? "pointer-events-none" : ""}"
       @click=${(e: MouseEvent) => {
